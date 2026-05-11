@@ -339,7 +339,8 @@ class ControlPanelTest extends TestCase
             ->assertOk()
             ->assertSee($presentTrainer->name)
             ->assertSee($absentTrainer->name)
-            ->assertSee('600')
+            ->assertSee('إجمالي الراتب')
+            ->assertSee('إجمالي الرواتب')
             ->assertSee('جدول الحضور')
             ->assertSee('جدول الغياب');
 
@@ -369,7 +370,7 @@ class ControlPanelTest extends TestCase
             ->assertOk()
             ->assertSee($presentTrainer->name)
             ->assertSee($absentTrainer->name)
-            ->assertDontSee('600');
+            ->assertSee('لا توجد سجلات');
     }
 
     public function test_supervisor_can_access_trainer_hours_without_salary_details(): void
