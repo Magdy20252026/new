@@ -90,11 +90,11 @@ class LoginController extends Controller
     private function loginSetupError(): ?string
     {
         if (! Schema::hasTable('users') || ! Schema::hasTable('branches')) {
-            return 'قاعدة البيانات غير مهيأة بعد. شغّل php artisan migrate --seed ثم أعد تحميل الصفحة.';
+            return 'قاعدة البيانات غير مهيأة بعد. شغل php artisan migrate --seed ثم أعد تحميل الصفحة.';
         }
 
         if (! Branch::query()->exists()) {
-            return 'لا توجد فروع متاحة لتسجيل الدخول. شغّل php artisan db:seed ثم أعد تحميل الصفحة.';
+            return 'لا توجد فروع متاحة لتسجيل الدخول. شغل php artisan db:seed ثم أعد تحميل الصفحة.';
         }
 
         return null;
