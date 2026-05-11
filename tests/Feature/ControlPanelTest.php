@@ -6,6 +6,7 @@ use App\Models\AppSetting;
 use App\Models\Branch;
 use App\Models\Trainer;
 use App\Models\TrainerFile;
+use App\Models\TrainerHour;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -285,11 +286,126 @@ class ControlPanelTest extends TestCase
             ->assertSee('صلاحيات المستخدمين')
             ->assertSee('السباحين')
             ->assertSee('المدربين')
+            ->assertSee(route('trainer-hours.index'))
             ->assertSee(route('trainers.index'))
             ->assertSee('الاحصائيات')
             ->assertDontSee('روابط سريعة')
             ->assertSee('sidebar-nav-link sidebar-nav-button is-disabled', false)
             ->assertSee('تسجيل الخروج');
+    }
+
+    public function test_manager_can_manage_trainer_hours_with_attendance_and_absence_by_date(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        $presentTrainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب حاضر',
+            'phone' => '01000000030',
+            'password' => '123456',
+            'hourly_rate' => '150',
+            'transfer_number' => '123',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+
+        $absentTrainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب غائب',
+            'phone' => '01000000031',
+            'password' => '123456',
+            'hourly_rate' => '175',
+            'transfer_number' => '456',
+            'transfer_type' => Trainer::TRANSFER_TYPE_INSTAPAY,
+        ]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('trainer-hours.store'), [
+                'trainer_id' => $presentTrainer->id,
+                'worked_on' => '2026-05-11',
+                'hours' => '4',
+            ])
+            ->assertRedirect(route('trainer-hours.index', ['date' => '2026-05-11']));
+
+        $trainerHour = TrainerHour::query()->where('trainer_id', $presentTrainer->id)->firstOrFail();
+
+        $this->assertSame('4.00', $trainerHour->hours);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('trainer-hours.index', ['date' => '2026-05-11']))
+            ->assertOk()
+            ->assertSee($presentTrainer->name)
+            ->assertSee($absentTrainer->name)
+            ->assertSee('600')
+            ->assertSee('جدول الحضور')
+            ->assertSee('جدول الغياب');
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->put(route('trainer-hours.update', $trainerHour), [
+                'trainer_id' => $presentTrainer->id,
+                'worked_on' => '2026-05-11',
+                'hours' => '5.5',
+            ])
+            ->assertRedirect(route('trainer-hours.index', ['date' => '2026-05-11']));
+
+        $trainerHour->refresh();
+
+        $this->assertSame('5.50', $trainerHour->hours);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->delete(route('trainer-hours.destroy', $trainerHour), ['date' => '2026-05-11'])
+            ->assertRedirect(route('trainer-hours.index', ['date' => '2026-05-11']));
+
+        $this->assertDatabaseMissing('trainer_hours', ['id' => $trainerHour->id]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('trainer-hours.index', ['date' => '2026-05-11']))
+            ->assertOk()
+            ->assertSee($presentTrainer->name)
+            ->assertSee($absentTrainer->name)
+            ->assertDontSee('600');
+    }
+
+    public function test_supervisor_can_access_trainer_hours_without_salary_details(): void
+    {
+        $this->seed();
+        $branch = Branch::query()->firstOrFail();
+
+        $supervisor = User::factory()->create([
+            'username' => 'trainer-hours-supervisor',
+            'role' => User::ROLE_SUPERVISOR,
+        ]);
+        $supervisor->branches()->sync([$branch->id]);
+
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب المشرف',
+            'phone' => '01000000032',
+            'password' => '123456',
+            'hourly_rate' => '130',
+            'transfer_number' => '789',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+
+        TrainerHour::query()->create([
+            'trainer_id' => $trainer->id,
+            'worked_on' => '2026-05-12',
+            'hours' => '3',
+        ]);
+
+        $this->actingAs($supervisor)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('trainer-hours.index', ['date' => '2026-05-12']))
+            ->assertOk()
+            ->assertSee($trainer->name)
+            ->assertDontSee('إجمالي الراتب')
+            ->assertDontSee('إجمالي الرواتب');
     }
 
     public function test_manager_pages_include_home_navigation_link(): void

@@ -40,6 +40,11 @@ class Trainer extends Model
         return $this->hasMany(TrainerFile::class)->orderBy('title');
     }
 
+    public function trainerHours(): HasMany
+    {
+        return $this->hasMany(TrainerHour::class)->orderByDesc('worked_on');
+    }
+
     protected static function booted(): void
     {
         static::deleting(function (self $trainer): void {
