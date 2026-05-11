@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\AppSetting;
+use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -10,16 +12,22 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $mainBranch = Branch::query()->firstOrCreate(['name' => 'الفرع الرئيسي']);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $manager = User::query()->updateOrCreate(
+            ['username' => 'magdy'],
+            [
+                'name' => 'magdy',
+                'password' => '123456',
+                'role' => User::ROLE_MANAGER,
+                'access_all_branches' => true,
+            ]
+        );
+
+        $manager->branches()->syncWithoutDetaching([$mainBranch->id]);
+
+        AppSetting::putValue('theme_mode', 'light');
     }
 }
