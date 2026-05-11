@@ -13,9 +13,21 @@ class ControlPanel
 {
     public static function siteSettings(): array
     {
+        if (! Schema::hasTable('app_settings')) {
+            return [
+                'site_name' => 'لوحة التحكم',
+                'site_logo_path' => '',
+                'site_logo' => asset('assets/images/logo.png'),
+                'theme_mode' => static::themeMode(),
+            ];
+        }
+
+        $siteLogoPath = AppSetting::valueFor('site_logo', '');
+
         return [
             'site_name' => AppSetting::valueFor('site_name', 'لوحة التحكم'),
-            'site_logo' => AppSetting::valueFor('site_logo', ''),
+            'site_logo_path' => $siteLogoPath,
+            'site_logo' => static::resolveAssetUrl($siteLogoPath),
             'theme_mode' => static::themeMode(),
         ];
     }
@@ -120,9 +132,26 @@ class ControlPanel
             static::menuItem('تقفيل الأسبوعي', 'bi-calendar-week-fill'),
             static::menuItem('تقفيل شهري', 'bi-calendar-month-fill'),
             static::menuItem('الاحصائيات', 'bi-bar-chart-fill'),
-            static::menuItem('إعدادات الموقع', 'bi-gear-fill'),
+            static::menuItem('إعدادات الموقع', 'bi-gear-fill', $user->isManager() ? route('site-settings.edit') : null, $active === 'site-settings'),
             static::menuItem('تسجيل الخروج', 'bi-box-arrow-right', route('logout'), false, 'form'),
         ];
+    }
+
+    protected static function resolveAssetUrl(?string $path): string
+    {
+        if (blank($path)) {
+            return asset('assets/images/logo.png');
+        }
+
+        if (
+            str_starts_with($path, 'http://')
+            || str_starts_with($path, 'https://')
+            || str_starts_with($path, '/')
+        ) {
+            return $path;
+        }
+
+        return asset($path);
     }
 
     protected static function menuItem(

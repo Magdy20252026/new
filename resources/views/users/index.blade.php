@@ -1,10 +1,10 @@
 @extends('layouts.dashboard')
 
 @section('content')
-    <div class="content-grid">
+    <div class="stacked-content">
         <section class="panel-card">
             <h2 class="section-title">إضافة مستخدم</h2>
-            <form action="{{ route('users.store') }}" method="POST" class="form-grid user-form">
+            <form action="{{ route('users.store') }}" method="POST" class="form-grid user-form top-form-grid">
                 @csrf
                 <div>
                     <label class="form-label" for="name">الاسم</label>
@@ -41,7 +41,9 @@
                         @endforeach
                     </select>
                 </div>
-                <button type="submit" class="btn primary-btn">إضافة</button>
+                <div class="form-submit-row">
+                    <button type="submit" class="btn primary-btn">إضافة</button>
+                </div>
             </form>
         </section>
 
