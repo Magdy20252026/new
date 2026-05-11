@@ -19,7 +19,6 @@ class DatabaseSeeder extends Seeder
         $manager = User::query()->updateOrCreate(
             ['username' => 'magdy'],
             [
-                'name' => 'magdy',
                 'password' => '123456',
                 'role' => User::ROLE_MANAGER,
                 'access_all_branches' => true,
