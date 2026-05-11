@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AppSetting;
 use App\Models\Branch;
 use App\Models\Trainer;
+use App\Models\TrainerFile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -115,6 +116,83 @@ class ControlPanelTest extends TestCase
             ->assertRedirect(route('trainers.index'));
 
         $this->assertDatabaseMissing('trainers', ['id' => $trainer->id]);
+    }
+
+    public function test_manager_can_manage_trainer_files(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب الصور',
+            'phone' => '01000000022',
+            'password' => '123456',
+            'hourly_rate' => '150',
+            'transfer_number' => '555666',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+
+        $imageOne = UploadedFile::fake()->image('trainer-file-one.png', 1200, 1200);
+        $imageTwo = UploadedFile::fake()->image('trainer-file-two.png', 1200, 1200);
+
+        $response = $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('trainers.index'));
+
+        $response->assertOk()
+            ->assertSee(route('trainers.files.index', $trainer))
+            ->assertSee('ملفات المدرب');
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('trainers.files.store', $trainer), [
+                'title' => 'البطاقة الشخصية',
+                'image' => $imageOne,
+            ])
+            ->assertRedirect(route('trainers.files.index', $trainer));
+
+        $trainerFile = TrainerFile::query()->where('title', 'البطاقة الشخصية')->firstOrFail();
+
+        $this->assertSame($trainer->id, $trainerFile->trainer_id);
+        $this->assertStringStartsWith('uploads/trainers/'.$trainer->id.'/trainer-file-', $trainerFile->file_path);
+        $this->assertFileExists(public_path($trainerFile->file_path));
+
+        $oldPath = $trainerFile->file_path;
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->put(route('trainers.files.update', [$trainer, $trainerFile]), [
+                'title' => 'صورة البطاقة',
+                'image' => $imageTwo,
+            ])
+            ->assertRedirect(route('trainers.files.index', $trainer));
+
+        $trainerFile->refresh();
+
+        $this->assertSame('صورة البطاقة', $trainerFile->title);
+        $this->assertNotSame($oldPath, $trainerFile->file_path);
+        $this->assertFileDoesNotExist(public_path($oldPath));
+        $this->assertFileExists(public_path($trainerFile->file_path));
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('trainers.files.index', $trainer))
+            ->assertOk()
+            ->assertSee('صورة البطاقة')
+            ->assertSee($trainerFile->file_path);
+
+        $currentPath = $trainerFile->file_path;
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->delete(route('trainers.files.destroy', [$trainer, $trainerFile]))
+            ->assertRedirect(route('trainers.files.index', $trainer));
+
+        $this->assertDatabaseMissing('trainer_files', ['id' => $trainerFile->id]);
+        $this->assertFileDoesNotExist(public_path($currentPath));
+
+        File::deleteDirectory(public_path('uploads/trainers'));
     }
 
     public function test_trainer_page_shows_only_trainers_for_current_branch(): void

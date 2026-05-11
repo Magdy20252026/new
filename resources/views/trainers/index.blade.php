@@ -111,12 +111,13 @@
                                 <td>{{ $trainer->transfer_number }}</td>
                                 <td><span class="pill-badge">{{ $trainer->transferTypeLabel() }}</span></td>
                                 <td class="table-actions">
-                                    <div class="table-action-group">
-                                        <a href="{{ route('trainers.edit', $trainer) }}" class="btn action-btn">تعديل</a>
-                                        <form action="{{ route('trainers.destroy', $trainer) }}" method="POST" class="inline-form">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn action-btn danger-btn">حذف</button>
+                                     <div class="table-action-group">
+                                        <a href="{{ route('trainers.files.index', $trainer) }}" class="btn action-btn">ملفات المدرب</a>
+                                         <a href="{{ route('trainers.edit', $trainer) }}" class="btn action-btn">تعديل</a>
+                                         <form action="{{ route('trainers.destroy', $trainer) }}" method="POST" class="inline-form">
+                                             @csrf
+                                             @method('DELETE')
+                                             <button type="submit" class="btn action-btn danger-btn">حذف</button>
                                         </form>
                                     </div>
                                 </td>
