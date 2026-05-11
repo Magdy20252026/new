@@ -632,6 +632,11 @@ html[data-theme="dark"] .icon-dark {
     align-items: start;
 }
 
+.stacked-content {
+    display: grid;
+    gap: 1.25rem;
+}
+
 .wide-card {
     min-width: 0;
 }
@@ -648,8 +653,22 @@ html[data-theme="dark"] .icon-dark {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.top-form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.branch-inline-form {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .form-panel .form-grid {
     grid-template-columns: 1fr;
+}
+
+.top-form-grid .branch-scope-block,
+.settings-form .logo-preview-card,
+.settings-form .form-actions-row {
+    grid-column: 1 / -1;
 }
 
 .form-label {
@@ -762,6 +781,66 @@ html[data-theme="dark"] .icon-dark {
     gap: 12px;
 }
 
+.form-submit-row {
+    display: flex;
+    align-items: end;
+}
+
+.form-submit-row .primary-btn,
+.form-actions-row .primary-btn {
+    min-width: 180px;
+}
+
+.settings-panel {
+    max-width: 880px;
+}
+
+.settings-form {
+    gap: 1rem;
+}
+
+.form-help-text {
+    margin-top: 0.5rem;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.logo-preview-card {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: rgba(15, 95, 215, 0.04);
+}
+
+.logo-preview-label {
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.settings-logo-box {
+    width: min(100%, 220px);
+    min-height: 220px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 24px;
+    border: 1px dashed var(--line);
+    background: rgba(255, 255, 255, 0.18);
+    overflow: hidden;
+}
+
+.settings-logo-preview {
+    max-width: 100%;
+    max-height: 180px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
 @media (max-width: 1199.98px) {
     .stats-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -798,6 +877,11 @@ html[data-theme="dark"] .icon-dark {
 
     .content-grid,
     .user-form {
+        grid-template-columns: 1fr;
+    }
+
+    .top-form-grid,
+    .branch-inline-form {
         grid-template-columns: 1fr;
     }
 }
@@ -904,5 +988,11 @@ html[data-theme="dark"] .icon-dark {
 
     .form-actions-row {
         flex-direction: column;
+    }
+
+    .form-submit-row .primary-btn,
+    .form-actions-row .primary-btn,
+    .settings-logo-box {
+        width: 100%;
     }
 }

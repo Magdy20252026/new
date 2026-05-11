@@ -1,16 +1,18 @@
 @extends('layouts.dashboard')
 
 @section('content')
-    <div class="content-grid">
+    <div class="stacked-content">
         <section class="panel-card">
             <h2 class="section-title">إضافة فرع</h2>
-            <form action="{{ route('branches.store') }}" method="POST" class="form-grid">
+            <form action="{{ route('branches.store') }}" method="POST" class="form-grid top-form-grid branch-inline-form">
                 @csrf
                 <div>
                     <label class="form-label" for="branch_name">اسم الفرع</label>
                     <input type="text" id="branch_name" name="name" class="form-control" value="{{ old('name') }}">
                 </div>
-                <button type="submit" class="btn primary-btn">إضافة</button>
+                <div class="form-submit-row">
+                    <button type="submit" class="btn primary-btn">إضافة</button>
+                </div>
             </form>
         </section>
 

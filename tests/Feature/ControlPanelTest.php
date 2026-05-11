@@ -6,6 +6,8 @@ use App\Models\AppSetting;
 use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -140,6 +142,31 @@ class ControlPanelTest extends TestCase
         $response->assertOk()
             ->assertSee(route('dashboard'))
             ->assertSee('الرئيسية');
+    }
+
+    public function test_manager_can_update_site_settings_with_logo(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $logo = UploadedFile::fake()->image('academy-logo.png', 1200, 1200);
+
+        $this->actingAs($manager)
+            ->put(route('site-settings.update'), [
+                'site_name' => 'أكاديمية السباحة',
+                'site_logo' => $logo,
+            ])
+            ->assertRedirect(route('site-settings.edit'));
+
+        $this->assertSame('أكاديمية السباحة', AppSetting::valueFor('site_name'));
+
+        $path = AppSetting::valueFor('site_logo');
+
+        $this->assertStringStartsWith('uploads/settings/site-logo-', $path);
+        $this->assertFileExists(public_path($path));
+
+        if (File::exists(public_path($path))) {
+            File::delete(public_path($path));
+        }
     }
 
     public function test_login_page_loads_when_branches_table_is_missing(): void
