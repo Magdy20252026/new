@@ -24,7 +24,9 @@
                 <h1>{{ $siteSettings['site_name'] }}</h1>
             </div>
 
-            @if($errors->any())
+            @if($setupError)
+                <div class="alert alert-danger login-alert">{{ $setupError }}</div>
+            @elseif($errors->any())
                 <div class="alert alert-danger login-alert">{{ $errors->first() }}</div>
             @endif
 
@@ -34,7 +36,7 @@
                     <label for="branch_id" class="form-label">الفرع</label>
                     <div class="input-shell">
                         <i class="bi bi-building"></i>
-                        <select name="branch_id" id="branch_id" class="form-select @error('branch_id') is-invalid @enderror">
+                        <select name="branch_id" id="branch_id" class="form-select @error('branch_id') is-invalid @enderror" @disabled($setupError)>
                             <option value="">اختر الفرع</option>
                             @foreach($branches as $branch)
                                 <option value="{{ $branch->id }}" @selected(old('branch_id') == $branch->id)>{{ $branch->name }}</option>
@@ -47,7 +49,7 @@
                     <label for="username" class="form-label">اسم المستخدم</label>
                     <div class="input-shell">
                         <i class="bi bi-person-fill"></i>
-                        <input type="text" name="username" id="username" class="form-control @error('username') is-invalid @enderror" value="{{ old('username') }}" autocomplete="username">
+                        <input type="text" name="username" id="username" class="form-control @error('username') is-invalid @enderror" value="{{ old('username') }}" autocomplete="username" @disabled($setupError)>
                     </div>
                 </div>
 
@@ -55,12 +57,12 @@
                     <label for="password" class="form-label">كلمة السر</label>
                     <div class="input-shell">
                         <i class="bi bi-shield-lock-fill"></i>
-                        <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" autocomplete="current-password">
-                        <button type="button" class="input-action" id="togglePassword"><i class="bi bi-eye-fill" id="togglePasswordIcon"></i></button>
+                        <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" autocomplete="current-password" @disabled($setupError)>
+                        <button type="button" class="input-action" id="togglePassword" @disabled($setupError)><i class="bi bi-eye-fill" id="togglePasswordIcon"></i></button>
                     </div>
                 </div>
 
-                <button type="submit" class="btn login-submit">دخول</button>
+                <button type="submit" class="btn login-submit" @disabled($setupError)>دخول</button>
             </form>
         </div>
     </main>
