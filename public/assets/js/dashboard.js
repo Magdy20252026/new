@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (themeToggle) {
         themeToggle.addEventListener('click', async function () {
-            const nextTheme = (html.getAttribute('data-theme') || 'light') === 'dark' ? 'light' : 'dark';
+            const currentTheme = html.getAttribute('data-theme') || 'light';
+            const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
             applyTheme(nextTheme);
 
             if (!themeUrl || !csrfToken) {
@@ -41,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     throw new Error('theme update failed');
                 }
             } catch (error) {
-                applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+                applyTheme(currentTheme);
             }
         });
     }
