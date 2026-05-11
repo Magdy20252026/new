@@ -87,6 +87,7 @@ class ControlPanelTest extends TestCase
         $trainer = Trainer::query()->where('phone', '01000000000')->firstOrFail();
 
         $this->assertSame('محمد', $trainer->name);
+        $this->assertSame($branch->id, $trainer->branch_id);
         $this->assertSame(Trainer::TRANSFER_TYPE_WALLET, $trainer->transfer_type);
 
         $this->actingAs($manager)
@@ -114,6 +115,41 @@ class ControlPanelTest extends TestCase
             ->assertRedirect(route('trainers.index'));
 
         $this->assertDatabaseMissing('trainers', ['id' => $trainer->id]);
+    }
+
+    public function test_trainer_page_shows_only_trainers_for_current_branch(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branchOne = Branch::query()->firstOrFail();
+        $branchTwo = Branch::query()->create(['name' => 'فرع 2']);
+
+        $trainerOne = Trainer::query()->create([
+            'branch_id' => $branchOne->id,
+            'name' => 'مدرب الفرع الأول',
+            'phone' => '01000000010',
+            'password' => '123456',
+            'hourly_rate' => '120',
+            'transfer_number' => '111',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+
+        $trainerTwo = Trainer::query()->create([
+            'branch_id' => $branchTwo->id,
+            'name' => 'مدرب الفرع الثاني',
+            'phone' => '01000000011',
+            'password' => '123456',
+            'hourly_rate' => '140',
+            'transfer_number' => '222',
+            'transfer_type' => Trainer::TRANSFER_TYPE_INSTAPAY,
+        ]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branchOne->id])
+            ->get(route('trainers.index'))
+            ->assertOk()
+            ->assertSee($trainerOne->name)
+            ->assertDontSee($trainerTwo->name);
     }
 
     public function test_branch_scoped_user_sees_only_current_branch_users(): void

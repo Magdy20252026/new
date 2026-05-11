@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
 use App\Models\Trainer;
+use App\Support\ControlPanel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -16,7 +19,9 @@ class TrainerController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $this->validatedPayload($request);
+        $currentBranch = ControlPanel::currentBranch($request->user());
+        abort_unless($currentBranch, 403);
+        $data = $this->validatedPayload($request, $currentBranch);
 
         Trainer::query()->create($data);
 
@@ -25,12 +30,17 @@ class TrainerController extends Controller
 
     public function edit(Request $request, Trainer $trainer)
     {
+        $trainer = $this->scopedTrainersQuery($request)->findOrFail($trainer->id);
+
         return $this->trainersView($request, $trainer);
     }
 
     public function update(Request $request, Trainer $trainer): RedirectResponse
     {
-        $data = $this->validatedPayload($request, $trainer);
+        $currentBranch = ControlPanel::currentBranch($request->user());
+        abort_unless($currentBranch, 403);
+        $trainer = $this->scopedTrainersQuery($request)->findOrFail($trainer->id);
+        $data = $this->validatedPayload($request, $currentBranch, $trainer);
 
         if (blank($data['password'])) {
             unset($data['password']);
@@ -41,8 +51,9 @@ class TrainerController extends Controller
         return redirect()->route('trainers.index')->with('status', 'تم تحديث المدرب');
     }
 
-    public function destroy(Trainer $trainer): RedirectResponse
+    public function destroy(Request $request, Trainer $trainer): RedirectResponse
     {
+        $trainer = $this->scopedTrainersQuery($request)->findOrFail($trainer->id);
         $trainer->delete();
 
         return redirect()->route('trainers.index')->with('status', 'تم حذف المدرب');
@@ -52,13 +63,25 @@ class TrainerController extends Controller
     {
         return $this->dashboardView($request, 'trainers.index', [
             'pageTitle' => 'المدربين',
-            'trainers' => Trainer::query()->orderBy('name')->get(),
+            'trainers' => $this->scopedTrainersQuery($request)->get(),
             'editedTrainer' => $editedTrainer,
             'transferTypes' => Trainer::transferTypeOptions(),
         ], 'trainers');
     }
 
-    protected function validatedPayload(Request $request, ?Trainer $trainer = null): array
+    protected function scopedTrainersQuery(Request $request): Builder
+    {
+        $currentBranch = ControlPanel::currentBranch($request->user());
+        $query = Trainer::query()->orderBy('name');
+
+        if (! $currentBranch) {
+            return $query->whereNull('id');
+        }
+
+        return $query->where('branch_id', $currentBranch->id);
+    }
+
+    protected function validatedPayload(Request $request, Branch $branch, ?Trainer $trainer = null): array
     {
         $passwordRules = $trainer ? ['nullable', 'string', 'min:6'] : ['required', 'string', 'min:6'];
 
@@ -79,6 +102,6 @@ class TrainerController extends Controller
             'hourly_rate.numeric' => 'سعر الساعة غير صحيح',
             'transfer_number.required' => 'رقم التحويل مطلوب',
             'transfer_type.required' => 'نوع التحويل مطلوب',
-        ]);
+        ]) + ['branch_id' => $branch->id];
     }
 }

@@ -5,8 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['name', 'phone', 'password', 'hourly_rate', 'transfer_number', 'transfer_type'])]
+#[Fillable(['branch_id', 'name', 'phone', 'password', 'hourly_rate', 'transfer_number', 'transfer_type'])]
 #[Hidden(['password'])]
 class Trainer extends Model
 {
@@ -25,6 +26,11 @@ class Trainer extends Model
             self::TRANSFER_TYPE_WALLET => 'محفظة',
             self::TRANSFER_TYPE_INSTAPAY => 'انستا باي',
         ];
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     protected function casts(): array
