@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\AppSetting;
 use App\Models\Branch;
+use App\Models\Trainer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -65,6 +66,56 @@ class ControlPanelTest extends TestCase
         $this->assertEquals([$branch->id], $user->branches()->pluck('branches.id')->all());
     }
 
+    public function test_manager_can_create_update_and_delete_trainer(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('trainers.store'), [
+                'name' => 'محمد',
+                'phone' => '01000000000',
+                'password' => '123456',
+                'hourly_rate' => '150',
+                'transfer_number' => '777888',
+                'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+            ])
+            ->assertRedirect(route('trainers.index'));
+
+        $trainer = Trainer::query()->where('phone', '01000000000')->firstOrFail();
+
+        $this->assertSame('محمد', $trainer->name);
+        $this->assertSame(Trainer::TRANSFER_TYPE_WALLET, $trainer->transfer_type);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->put(route('trainers.update', $trainer), [
+                'name' => 'محمد أحمد',
+                'phone' => '01000000001',
+                'password' => '',
+                'hourly_rate' => '175',
+                'transfer_number' => '999000',
+                'transfer_type' => Trainer::TRANSFER_TYPE_INSTAPAY,
+            ])
+            ->assertRedirect(route('trainers.index'));
+
+        $trainer->refresh();
+
+        $this->assertSame('محمد أحمد', $trainer->name);
+        $this->assertSame('01000000001', $trainer->phone);
+        $this->assertSame('175.00', $trainer->hourly_rate);
+        $this->assertSame(Trainer::TRANSFER_TYPE_INSTAPAY, $trainer->transfer_type);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->delete(route('trainers.destroy', $trainer))
+            ->assertRedirect(route('trainers.index'));
+
+        $this->assertDatabaseMissing('trainers', ['id' => $trainer->id]);
+    }
+
     public function test_branch_scoped_user_sees_only_current_branch_users(): void
     {
         $this->seed();
@@ -120,6 +171,7 @@ class ControlPanelTest extends TestCase
             ->assertSee('صلاحيات المستخدمين')
             ->assertSee('السباحين')
             ->assertSee('المدربين')
+            ->assertSee(route('trainers.index'))
             ->assertSee('الاحصائيات')
             ->assertDontSee('روابط سريعة')
             ->assertSee('sidebar-nav-link sidebar-nav-button is-disabled', false)
