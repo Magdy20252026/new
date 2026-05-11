@@ -7,6 +7,7 @@ use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\TrainerFileController;
+use App\Http\Controllers\TrainerHourController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/branch/switch', [DashboardController::class, 'switchBranch'])->name('branch.switch');
     Route::post('/theme', [ThemeController::class, 'update'])->name('theme.update');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    Route::resource('trainer-hours', TrainerHourController::class)
+        ->except(['create', 'show']);
 
     Route::middleware('manager')->group(function (): void {
         Route::resource('branches', BranchController::class)->except(['create', 'show']);

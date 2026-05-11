@@ -105,4 +105,33 @@ document.addEventListener('DOMContentLoaded', function () {
         syncScope();
         select.addEventListener('change', syncScope);
     });
+
+    document.querySelectorAll('.trainer-hours-form').forEach(function (form) {
+        const trainerSelect = form.querySelector('[data-trainer-hours-trainer]');
+        const hoursInput = form.querySelector('[data-trainer-hours-input]');
+        const totalInput = form.querySelector('[data-trainer-hours-total]');
+
+        if (!trainerSelect || !hoursInput || !totalInput) {
+            return;
+        }
+
+        const formatNumber = function (value) {
+            if (!Number.isFinite(value)) {
+                return '';
+            }
+
+            return value.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+        };
+
+        const syncTotal = function () {
+            const selectedOption = trainerSelect.options[trainerSelect.selectedIndex];
+            const hourlyRate = Number(selectedOption?.dataset.hourlyRate || 0);
+            const hours = Number(hoursInput.value || 0);
+            totalInput.value = formatNumber(hourlyRate * hours);
+        };
+
+        syncTotal();
+        trainerSelect.addEventListener('change', syncTotal);
+        hoursInput.addEventListener('input', syncTotal);
+    });
 });

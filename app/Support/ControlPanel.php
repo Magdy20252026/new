@@ -114,7 +114,7 @@ class ControlPanel
             static::menuItem('تجديد الاشتراكات', 'bi-arrow-repeat'),
             static::menuItem('تسديد الباقي', 'bi-cash-stack'),
             static::menuItem('المدربين', 'bi-person-workspace', $user->isManager() ? route('trainers.index') : null, $active === 'trainers'),
-            static::menuItem('ساعات المدربين', 'bi-clock-history'),
+            static::menuItem('ساعات المدربين', 'bi-clock-history', route('trainer-hours.index'), $active === 'trainer-hours'),
             static::menuItem('سلف المدربين', 'bi-wallet2'),
             static::menuItem('قبض المدربين', 'bi-cash-coin'),
             static::menuItem('الإداريين', 'bi-people'),
