@@ -75,7 +75,7 @@ class TrainerController extends Controller
         $query = Trainer::query()->orderBy('name');
 
         if (! $currentBranch) {
-            return $query->whereRaw('1 = 0');
+            return $query->whereNull('id');
         }
 
         return $query->where('branch_id', $currentBranch->id);
