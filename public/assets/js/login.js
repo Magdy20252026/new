@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (togglePassword && passwordInput) {
+    if (togglePassword && passwordInput && togglePasswordIcon) {
         togglePassword.addEventListener('click', function () {
             const isPassword = passwordInput.getAttribute('type') === 'password';
             passwordInput.setAttribute('type', isPassword ? 'text' : 'password');

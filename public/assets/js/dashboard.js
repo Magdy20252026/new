@@ -4,28 +4,51 @@ document.addEventListener('DOMContentLoaded', function () {
     const menuToggle = document.getElementById('menuToggle');
     const sidebarBackdrop = document.getElementById('sidebarBackdrop');
     const themeToggle = document.getElementById('themeToggle');
+    const themeUrl = document.body.dataset.themeUrl;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    const applyTheme = function (theme) {
+        html.setAttribute('data-theme', theme);
+        localStorage.setItem('theme-mode', theme);
+    };
 
     const savedTheme = localStorage.getItem('theme-mode');
     if (savedTheme === 'dark' || savedTheme === 'light') {
-        html.setAttribute('data-theme', savedTheme);
+        applyTheme(savedTheme);
     }
 
     if (themeToggle) {
-        themeToggle.addEventListener('click', function () {
-            const currentTheme = html.getAttribute('data-theme') || 'light';
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme-mode', newTheme);
+        themeToggle.addEventListener('click', async function () {
+            const nextTheme = (html.getAttribute('data-theme') || 'light') === 'dark' ? 'light' : 'dark';
+            applyTheme(nextTheme);
+
+            if (!themeUrl || !csrfToken) {
+                return;
+            }
+
+            try {
+                const response = await fetch(themeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    body: JSON.stringify({ theme: nextTheme }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('theme update failed');
+                }
+            } catch (error) {
+                applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+            }
         });
     }
 
     if (menuToggle) {
         menuToggle.addEventListener('click', function () {
-            if (window.innerWidth < 992) {
-                app.classList.toggle('sidebar-open');
-            } else {
-                app.classList.toggle('sidebar-collapsed');
-            }
+            app.classList.toggle('sidebar-open');
         });
     }
 
@@ -34,4 +57,17 @@ document.addEventListener('DOMContentLoaded', function () {
             app.classList.remove('sidebar-open');
         });
     }
+
+    document.querySelectorAll('.branch-scope-select').forEach(function (select) {
+        const target = document.querySelector(select.dataset.target);
+        const syncScope = function () {
+            if (!target) {
+                return;
+            }
+            target.classList.toggle('d-none', select.value === 'all');
+        };
+
+        syncScope();
+        select.addEventListener('change', syncScope);
+    });
 });
