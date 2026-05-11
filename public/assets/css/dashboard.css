@@ -669,6 +669,11 @@ html[data-theme="dark"] .icon-dark {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.trainer-form {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem 1.1rem;
+}
+
 .branch-inline-form {
     grid-template-columns: minmax(0, 1fr) auto;
 }
@@ -678,6 +683,7 @@ html[data-theme="dark"] .icon-dark {
 }
 
 .top-form-grid .branch-scope-block,
+.trainer-form .trainer-form-actions,
 .settings-form .logo-preview-card,
 .settings-form .form-actions-row {
     grid-column: 1 / -1;
@@ -840,6 +846,67 @@ html[data-theme="dark"] .alert-danger {
 .form-submit-row .primary-btn,
 .form-actions-row .primary-btn {
     min-width: 180px;
+}
+
+.trainer-form-card,
+.trainer-table-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.trainer-form-card::before,
+.trainer-table-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(15, 95, 215, 0.14), transparent 70%);
+    pointer-events: none;
+}
+
+.trainer-form-card > *,
+.trainer-table-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.trainer-form-actions {
+    flex-wrap: wrap;
+}
+
+.trainer-transfer-select {
+    font-weight: 800;
+}
+
+.trainer-name-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 800;
+}
+
+.trainer-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 95, 215, 0.1);
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+.trainer-rate-cell {
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.table-action-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
 }
 
 .settings-panel {

@@ -113,7 +113,7 @@ class ControlPanel
             static::menuItem('حضور السباحين', 'bi-calendar2-check-fill'),
             static::menuItem('تجديد الاشتراكات', 'bi-arrow-repeat'),
             static::menuItem('تسديد الباقي', 'bi-cash-stack'),
-            static::menuItem('المدربين', 'bi-person-workspace'),
+            static::menuItem('المدربين', 'bi-person-workspace', $user->isManager() ? route('trainers.index') : null, $active === 'trainers'),
             static::menuItem('ساعات المدربين', 'bi-clock-history'),
             static::menuItem('سلف المدربين', 'bi-wallet2'),
             static::menuItem('قبض المدربين', 'bi-cash-coin'),
