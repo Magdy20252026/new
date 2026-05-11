@@ -18,6 +18,7 @@
     --primary: #0f5fd7;
     --primary-2: #06b6d4;
     --danger: #dc2626;
+    --danger-soft: rgba(220, 38, 38, 0.08);
 
     --link-hover: rgba(15, 95, 215, 0.08);
     --link-active: linear-gradient(135deg, #0f5fd7, #20d4d8);
@@ -49,6 +50,7 @@ html[data-theme="dark"] {
     --primary: #67e8f9;
     --primary-2: #3b82f6;
     --danger: #f87171;
+    --danger-soft: rgba(248, 113, 113, 0.12);
 
     --link-hover: rgba(34, 211, 238, 0.08);
     --link-active: linear-gradient(135deg, #2563eb, #22d3ee);
@@ -193,6 +195,10 @@ body {
     gap: 0.55rem;
 }
 
+.sidebar-nav-form {
+    margin: 0;
+}
+
 .sidebar-nav-link {
     display: flex;
     align-items: center;
@@ -205,6 +211,14 @@ body {
     font-weight: 800;
     line-height: 1.5;
     transition: all 0.22s ease;
+}
+
+.sidebar-nav-button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: right;
+    cursor: pointer;
 }
 
 .sidebar-nav-link:hover {
@@ -229,6 +243,27 @@ body {
 
 .sidebar-nav-text {
     flex: 1;
+}
+
+.sidebar-nav-link.is-disabled {
+    opacity: 0.64;
+    color: var(--text-soft);
+    cursor: not-allowed;
+}
+
+.sidebar-nav-link.is-disabled:hover {
+    background: transparent;
+    color: var(--text-soft);
+    transform: none;
+}
+
+.logout-link {
+    color: var(--danger);
+}
+
+.logout-link:hover {
+    background: var(--danger-soft);
+    color: var(--danger);
 }
 
 .dashboard-main {

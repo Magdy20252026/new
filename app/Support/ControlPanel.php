@@ -14,7 +14,8 @@ class ControlPanel
     public static function siteSettings(): array
     {
         return [
-            'site_name' => 'لوحة التحكم',
+            'site_name' => AppSetting::valueFor('site_name', 'لوحة التحكم'),
+            'site_logo' => AppSetting::valueFor('site_logo', ''),
             'theme_mode' => static::themeMode(),
         ];
     }
@@ -89,32 +90,55 @@ class ControlPanel
 
     public static function menuItems(string $active, User $user): array
     {
-        $items = [
-            [
-                'title' => 'الرئيسية',
-                'icon' => 'bi-grid-1x2-fill',
-                'route' => route('dashboard'),
-                'active' => $active === 'dashboard',
-            ],
+        return [
+            static::menuItem('الفروع', 'bi-diagram-3-fill', $user->isManager() ? route('branches.index') : null, $active === 'branches'),
+            static::menuItem('المستخدمين', 'bi-people-fill', $user->isManager() ? route('users.index') : null, $active === 'users'),
+            static::menuItem('صلاحيات المستخدمين', 'bi-shield-lock-fill'),
+            static::menuItem('المجموعات', 'bi-collection-fill'),
+            static::menuItem('السباحين', 'bi-person-arms-up'),
+            static::menuItem('تسكين السباحين', 'bi-diagram-2-fill'),
+            static::menuItem('حضور السباحين', 'bi-calendar2-check-fill'),
+            static::menuItem('تجديد الاشتراكات', 'bi-arrow-repeat'),
+            static::menuItem('تسديد الباقي', 'bi-cash-stack'),
+            static::menuItem('المدربين', 'bi-person-workspace'),
+            static::menuItem('ساعات المدربين', 'bi-clock-history'),
+            static::menuItem('سلف المدربين', 'bi-wallet2'),
+            static::menuItem('قبض المدربين', 'bi-cash-coin'),
+            static::menuItem('الإداريين', 'bi-people'),
+            static::menuItem('قبض الإداريين', 'bi-credit-card-2-front-fill'),
+            static::menuItem('الأصناف', 'bi-box-seam-fill'),
+            static::menuItem('المبيعات', 'bi-cart-check-fill'),
+            static::menuItem('المتجر', 'bi-shop'),
+            static::menuItem('طلب الكارنية', 'bi-person-vcard-fill'),
+            static::menuItem('اشعارات السباح', 'bi-bell-fill'),
+            static::menuItem('العروض', 'bi-tags-fill'),
+            static::menuItem('اشعارات المدربين', 'bi-megaphone-fill'),
+            static::menuItem('الاكاديميات', 'bi-buildings-fill'),
+            static::menuItem('سباحين الأكاديميات', 'bi-people-fill'),
+            static::menuItem('تقفيل يومي', 'bi-calendar-day-fill'),
+            static::menuItem('تقفيل الأسبوعي', 'bi-calendar-week-fill'),
+            static::menuItem('تقفيل شهري', 'bi-calendar-month-fill'),
+            static::menuItem('الاحصائيات', 'bi-bar-chart-fill'),
+            static::menuItem('إعدادات الموقع', 'bi-gear-fill'),
+            static::menuItem('تسجيل الخروج', 'bi-box-arrow-right', route('logout'), false, 'form'),
         ];
+    }
 
-        if ($user->isManager()) {
-            $items[] = [
-                'title' => 'الفروع',
-                'icon' => 'bi-diagram-3-fill',
-                'route' => route('branches.index'),
-                'active' => $active === 'branches',
-            ];
-
-            $items[] = [
-                'title' => 'المستخدمين',
-                'icon' => 'bi-people-fill',
-                'route' => route('users.index'),
-                'active' => $active === 'users',
-            ];
-        }
-
-        return $items;
+    protected static function menuItem(
+        string $title,
+        string $icon,
+        ?string $route = null,
+        bool $active = false,
+        string $type = 'link',
+    ): array {
+        return [
+            'title' => $title,
+            'icon' => $icon,
+            'route' => $route,
+            'active' => $active,
+            'type' => $type,
+            'available' => filled($route) || $type === 'form',
+        ];
     }
 
     public static function roleOptions(): array

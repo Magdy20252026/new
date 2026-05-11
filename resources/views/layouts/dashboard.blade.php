@@ -41,13 +41,32 @@
             <div class="sidebar-body">
                 <nav class="sidebar-nav">
                     @foreach($menuItems as $item)
-                        <a href="{{ $item['route'] }}"
-                           class="sidebar-nav-link {{ $item['active'] ? 'active' : '' }}">
-                            <span class="sidebar-nav-icon">
-                                <i class="bi {{ $item['icon'] }}"></i>
-                            </span>
-                            <span class="sidebar-nav-text">{{ $item['title'] }}</span>
-                        </a>
+                        @if($item['type'] === 'form')
+                            <form action="{{ $item['route'] }}" method="POST" class="sidebar-nav-form">
+                                @csrf
+                                <button type="submit" class="sidebar-nav-link sidebar-nav-button logout-link">
+                                    <span class="sidebar-nav-icon">
+                                        <i class="bi {{ $item['icon'] }}"></i>
+                                    </span>
+                                    <span class="sidebar-nav-text">{{ $item['title'] }}</span>
+                                </button>
+                            </form>
+                        @elseif($item['available'])
+                            <a href="{{ $item['route'] }}"
+                               class="sidebar-nav-link {{ $item['active'] ? 'active' : '' }}">
+                                <span class="sidebar-nav-icon">
+                                    <i class="bi {{ $item['icon'] }}"></i>
+                                </span>
+                                <span class="sidebar-nav-text">{{ $item['title'] }}</span>
+                            </a>
+                        @else
+                            <button type="button" class="sidebar-nav-link sidebar-nav-button is-disabled" disabled aria-disabled="true">
+                                <span class="sidebar-nav-icon">
+                                    <i class="bi {{ $item['icon'] }}"></i>
+                                </span>
+                                <span class="sidebar-nav-text">{{ $item['title'] }}</span>
+                            </button>
+                        @endif
                     @endforeach
                 </nav>
             </div>
