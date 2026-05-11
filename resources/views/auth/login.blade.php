@@ -67,7 +67,7 @@
                                     <label for="branch_id" class="form-label">الفرع</label>
                                     <div class="input-group swim-input-group">
                                         <span class="input-group-text">
-                                            <i class="bi bi-diagram-3-fill"></i>
+                                            <i class="bi bi-building"></i>
                                         </span>
                                         <select
                                             name="branch_id"
