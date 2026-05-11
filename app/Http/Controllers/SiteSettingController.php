@@ -51,13 +51,17 @@ class SiteSettingController extends Controller
         $directory = public_path('uploads/settings');
         File::ensureDirectoryExists($directory);
 
-        $filename = 'site-logo-'.Str::uuid().'.'.$uploadedFile->extension();
+        $filename = 'site-logo-'.Str::uuid().'.'.$this->resolveLogoExtension($uploadedFile);
         $uploadedFile->move($directory, $filename);
 
         $path = 'uploads/settings/'.$filename;
         $currentPath = AppSetting::valueFor('site_logo');
 
-        if ($this->isManagedLogoPath($currentPath) && $currentPath !== $path) {
+        if (
+            $this->isManagedLogoPath($currentPath)
+            && $currentPath !== $path
+            && File::exists(public_path($currentPath))
+        ) {
             File::delete(public_path($currentPath));
         }
 
@@ -67,5 +71,10 @@ class SiteSettingController extends Controller
     protected function isManagedLogoPath(?string $path): bool
     {
         return filled($path) && str_starts_with($path, 'uploads/settings/');
+    }
+
+    protected function resolveLogoExtension(UploadedFile $uploadedFile): string
+    {
+        return $uploadedFile->guessExtension() ?: 'img';
     }
 }

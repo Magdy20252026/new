@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -163,7 +164,9 @@ class ControlPanelTest extends TestCase
         $this->assertStringStartsWith('uploads/settings/site-logo-', $path);
         $this->assertFileExists(public_path($path));
 
-        @unlink(public_path($path));
+        if (File::exists(public_path($path))) {
+            File::delete(public_path($path));
+        }
     }
 
     public function test_login_page_loads_when_branches_table_is_missing(): void

@@ -143,11 +143,7 @@ class ControlPanel
             return asset('assets/images/logo.png');
         }
 
-        if (
-            str_starts_with($path, 'http://')
-            || str_starts_with($path, 'https://')
-            || str_starts_with($path, '/')
-        ) {
+        if (filter_var($path, FILTER_VALIDATE_URL) || str_starts_with($path, '/')) {
             return $path;
         }
 
