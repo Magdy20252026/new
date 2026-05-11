@@ -7,10 +7,6 @@
             @csrf
             @method('PUT')
             <div>
-                <label class="form-label" for="name">الاسم</label>
-                <input type="text" id="name" name="name" class="form-control" value="{{ old('name', $editedUser->name) }}">
-            </div>
-            <div>
                 <label class="form-label" for="username">اسم المستخدم</label>
                 <input type="text" id="username" name="username" class="form-control" value="{{ old('username', $editedUser->username) }}">
             </div>

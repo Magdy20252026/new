@@ -91,7 +91,6 @@ class UserController extends Controller
         $passwordRules = $user ? ['nullable', 'string', 'min:6'] : ['required', 'string', 'min:6'];
 
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($user?->id)],
             'password' => $passwordRules,
             'role' => ['required', Rule::in(array_keys(ControlPanel::roleOptions()))],
@@ -99,7 +98,6 @@ class UserController extends Controller
             'branch_ids' => ['nullable', 'array'],
             'branch_ids.*' => ['integer', Rule::in($branchIds)],
         ], [
-            'name.required' => 'اسم المستخدم مطلوب',
             'username.required' => 'اسم المستخدم مطلوب',
             'username.unique' => 'اسم المستخدم مسجل بالفعل',
             'password.required' => 'كلمة السر مطلوبة',
@@ -117,7 +115,6 @@ class UserController extends Controller
         }
 
         return [[
-            'name' => $data['name'],
             'username' => $data['username'],
             'password' => $data['password'] ?? '',
             'role' => $data['role'],

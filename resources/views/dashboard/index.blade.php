@@ -4,7 +4,7 @@
     <section class="hero-panel">
         <div class="hero-panel-content">
             <div class="hero-kicker">لوحة التحكم الرئيسية</div>
-            <h1 class="hero-title">مرحبًا، {{ $authUser->name }}</h1>
+            <h1 class="hero-title">مرحبًا، {{ $authUser->username }}</h1>
             <div class="hero-meta">
                 <span>{{ $authUser->roleLabel() }}</span>
                 <span class="hero-divider"></span>

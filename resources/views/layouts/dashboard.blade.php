@@ -32,7 +32,7 @@
                     </div>
 
                     <div class="academy-user-card">
-                        <div class="academy-user-name">{{ $authUser->name }}</div>
+                        <div class="academy-user-name">{{ $authUser->username }}</div>
                         <div class="academy-user-role">{{ $authUser->roleLabel() }}</div>
                     </div>
                 </div>

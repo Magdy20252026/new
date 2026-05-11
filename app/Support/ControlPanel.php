@@ -87,7 +87,7 @@ class ControlPanel
     {
         $branch ??= static::currentBranch($user);
 
-        $query = User::query()->with('branches')->orderBy('name');
+        $query = User::query()->with('branches')->orderBy('username');
 
         if (! $branch) {
             return $query->whereRaw('1 = 0');

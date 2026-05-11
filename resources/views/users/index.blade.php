@@ -7,10 +7,6 @@
             <form action="{{ route('users.store') }}" method="POST" class="form-grid user-form top-form-grid">
                 @csrf
                 <div>
-                    <label class="form-label" for="name">الاسم</label>
-                    <input type="text" id="name" name="name" class="form-control" value="{{ old('name') }}">
-                </div>
-                <div>
                     <label class="form-label" for="username">اسم المستخدم</label>
                     <input type="text" id="username" name="username" class="form-control" value="{{ old('username') }}">
                 </div>
@@ -56,7 +52,6 @@
                     <table class="table align-middle app-table">
                         <thead>
                             <tr>
-                                <th>الاسم</th>
                                 <th>اسم المستخدم</th>
                                 <th>الصلاحية</th>
                                 <th>الفروع</th>
@@ -66,7 +61,6 @@
                         <tbody>
                             @foreach($users as $user)
                                 <tr>
-                                    <td>{{ $user->name }}</td>
                                     <td>{{ $user->username }}</td>
                                     <td><span class="pill-badge">{{ $user->roleLabel() }}</span></td>
                                     <td>

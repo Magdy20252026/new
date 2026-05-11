@@ -51,7 +51,6 @@ class ControlPanelTest extends TestCase
         $this->actingAs($manager)
             ->withSession(['current_branch_id' => $currentBranch->id])
             ->post(route('users.store'), [
-                'name' => 'Supervisor',
                 'username' => 'supervisor',
                 'password' => '123456',
                 'role' => User::ROLE_SUPERVISOR,
@@ -73,14 +72,12 @@ class ControlPanelTest extends TestCase
         $branchTwo = Branch::query()->create(['name' => 'فرع 2']);
 
         $scopedUser = User::factory()->create([
-            'name' => 'Scoped User',
             'username' => 'scoped',
             'role' => User::ROLE_SUPERVISOR,
         ]);
         $scopedUser->branches()->sync([$branchOne->id]);
 
         $otherUser = User::factory()->create([
-            'name' => 'Other User',
             'username' => 'other',
             'role' => User::ROLE_SUPERVISOR,
         ]);
@@ -90,7 +87,7 @@ class ControlPanelTest extends TestCase
             ->withSession(['current_branch_id' => $branchOne->id])
             ->get(route('dashboard'));
 
-        $response->assertOk()->assertSee('Scoped User')->assertDontSee('Other User');
+        $response->assertOk()->assertSee('scoped')->assertDontSee('other');
     }
 
     public function test_authenticated_user_can_update_theme(): void

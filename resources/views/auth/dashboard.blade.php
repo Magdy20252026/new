@@ -27,7 +27,7 @@
                     </div>
 
                     <div class="user-box">
-                        <div class="user-name">{{ $user['name'] ?? 'اسم المستخدم' }}</div>
+                        <div class="user-name">{{ $user['username'] ?? 'اسم المستخدم' }}</div>
                         <div class="user-role">{{ $user['role'] ?? 'الصلاحية' }}</div>
                     </div>
                 </div>
