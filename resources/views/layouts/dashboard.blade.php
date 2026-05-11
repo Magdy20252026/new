@@ -62,7 +62,7 @@
 
                     <div class="topbar-title-wrap">
                         <div class="topbar-title">{{ $pageTitle ?? 'لوحة التحكم' }}</div>
-                        <div class="topbar-subtitle">{{ $siteSettings['site_name'] }}</div>
+                        <div class="topbar-site-name">{{ $siteSettings['site_name'] }}</div>
                     </div>
                 </div>
 
@@ -82,9 +82,9 @@
             </header>
 
             <div class="breadcrumb-bar">
-                <div class="breadcrumb-item active">{{ $pageTitle ?? 'الرئيسية' }}</div>
-                <i class="bi bi-chevron-left breadcrumb-separator"></i>
                 <div class="breadcrumb-item">لوحة التحكم</div>
+                <i class="bi bi-chevron-left breadcrumb-separator"></i>
+                <div class="breadcrumb-item active">{{ $pageTitle ?? 'الرئيسية' }}</div>
             </div>
 
             <main class="dashboard-content">

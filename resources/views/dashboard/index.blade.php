@@ -26,7 +26,7 @@
     </section>
 
     <section class="quick-actions-panel">
-        <h2 class="section-title">الأزرار</h2>
+        <h2 class="section-title">روابط سريعة</h2>
         <div class="quick-actions-grid">
             <a href="{{ route('branches.index') }}" class="quick-action-card {{ $authUser->isManager() ? '' : 'disabled' }}">
                 <span class="quick-action-icon"><i class="bi bi-diagram-3-fill"></i></span>
