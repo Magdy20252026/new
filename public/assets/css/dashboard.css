@@ -933,17 +933,18 @@ html[data-theme="dark"] .alert-danger {
 }
 
 .trainer-file-preview-box {
-    width: min(100%, 260px);
-    min-height: 260px;
+    width: min(100%, 220px);
+    min-height: 220px;
 }
 
 .trainer-file-preview-image {
-    max-height: 220px;
+    max-height: 180px;
 }
 
 .trainer-files-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 220px));
+    justify-content: start;
     gap: 1rem;
 }
 
@@ -957,7 +958,7 @@ html[data-theme="dark"] .alert-danger {
 
 .trainer-file-image-link {
     display: block;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 1 / 1;
     background: rgba(255, 255, 255, 0.18);
 }
 
