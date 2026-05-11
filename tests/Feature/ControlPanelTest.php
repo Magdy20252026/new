@@ -104,6 +104,26 @@ class ControlPanelTest extends TestCase
         $this->assertSame('dark', AppSetting::valueFor('theme_mode'));
     }
 
+    public function test_dashboard_shows_requested_control_panel_buttons(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        $response = $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('dashboard'));
+
+        $response->assertOk()
+            ->assertSee('الفروع')
+            ->assertSee('المستخدمين')
+            ->assertSee('صلاحيات المستخدمين')
+            ->assertSee('السباحين')
+            ->assertSee('المدربين')
+            ->assertSee('الاحصائيات')
+            ->assertSee('تسجيل الخروج');
+    }
+
     public function test_login_page_loads_when_branches_table_is_missing(): void
     {
         Schema::dropIfExists('branch_user');

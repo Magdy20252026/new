@@ -6,6 +6,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const themeToggle = document.getElementById('themeToggle');
     const themeUrl = document.body.dataset.themeUrl;
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const desktopQuery = window.matchMedia('(min-width: 992px)');
+
+    const syncSidebarState = function () {
+        if (!app) {
+            return;
+        }
+
+        if (desktopQuery.matches) {
+            const savedState = localStorage.getItem('dashboard-sidebar');
+            app.classList.toggle('sidebar-collapsed', savedState === 'collapsed');
+            app.classList.remove('sidebar-open');
+            return;
+        }
+
+        app.classList.remove('sidebar-collapsed');
+        app.classList.remove('sidebar-open');
+    };
 
     const applyTheme = function (theme) {
         html.setAttribute('data-theme', theme);
@@ -47,8 +64,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    syncSidebarState();
+
     if (menuToggle) {
         menuToggle.addEventListener('click', function () {
+            if (!app) {
+                return;
+            }
+
+            if (desktopQuery.matches) {
+                const collapsed = app.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('dashboard-sidebar', collapsed ? 'collapsed' : 'expanded');
+                app.classList.remove('sidebar-open');
+
+                return;
+            }
+
             app.classList.toggle('sidebar-open');
         });
     }
@@ -57,6 +88,12 @@ document.addEventListener('DOMContentLoaded', function () {
         sidebarBackdrop.addEventListener('click', function () {
             app.classList.remove('sidebar-open');
         });
+    }
+
+    if (typeof desktopQuery.addEventListener === 'function') {
+        desktopQuery.addEventListener('change', syncSidebarState);
+    } else if (typeof desktopQuery.addListener === 'function') {
+        desktopQuery.addListener(syncSidebarState);
     }
 
     document.querySelectorAll('.branch-scope-select').forEach(function (select) {

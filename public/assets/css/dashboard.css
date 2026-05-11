@@ -193,6 +193,10 @@ body {
     gap: 0.55rem;
 }
 
+.sidebar-nav-form {
+    margin: 0;
+}
+
 .sidebar-nav-link {
     display: flex;
     align-items: center;
@@ -205,6 +209,14 @@ body {
     font-weight: 800;
     line-height: 1.5;
     transition: all 0.22s ease;
+}
+
+.sidebar-nav-button {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: right;
+    cursor: pointer;
 }
 
 .sidebar-nav-link:hover {
@@ -229,6 +241,27 @@ body {
 
 .sidebar-nav-text {
     flex: 1;
+}
+
+.sidebar-nav-link.is-disabled {
+    opacity: 0.64;
+    color: var(--text-soft);
+    cursor: not-allowed;
+}
+
+.sidebar-nav-link.is-disabled:hover {
+    background: transparent;
+    color: var(--text-soft);
+    transform: none;
+}
+
+.logout-link {
+    color: var(--danger);
+}
+
+.logout-link:hover {
+    background: rgba(220, 38, 38, 0.08);
+    color: var(--danger);
 }
 
 .dashboard-main {
