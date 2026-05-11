@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const applyTheme = function (theme) {
         html.setAttribute('data-theme', theme);
+        html.setAttribute('data-bs-theme', theme);
         localStorage.setItem('theme-mode', theme);
     };
 

@@ -5,17 +5,22 @@ document.addEventListener('DOMContentLoaded', function () {
     const passwordInput = document.getElementById('password');
     const togglePasswordIcon = document.getElementById('togglePasswordIcon');
 
+    const applyTheme = function (theme) {
+        html.setAttribute('data-theme', theme);
+        html.setAttribute('data-bs-theme', theme);
+        localStorage.setItem('theme-mode', theme);
+    };
+
     const savedTheme = localStorage.getItem('theme-mode');
     if (savedTheme === 'dark' || savedTheme === 'light') {
-        html.setAttribute('data-theme', savedTheme);
+        applyTheme(savedTheme);
     }
 
     if (themeToggle) {
         themeToggle.addEventListener('click', function () {
             const currentTheme = html.getAttribute('data-theme') || 'light';
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme-mode', newTheme);
+            applyTheme(newTheme);
         });
     }
 

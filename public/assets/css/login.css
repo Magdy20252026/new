@@ -28,6 +28,7 @@
 
     --toggle-bg: rgba(255, 255, 255, 0.80);
     --toggle-color: #0f172a;
+    --option-bg: #ffffff;
 
     --danger-bg: rgba(254, 226, 226, 0.88);
     --danger-border: rgba(248, 113, 113, 0.22);
@@ -46,8 +47,8 @@ html[data-theme="dark"] {
     --sea-3: #22d3ee;
     --sea-4: #67e8f9;
 
-    --text-main: #f1f5f9;
-    --text-soft: #9ab0c8;
+    --text-main: #f8fbff;
+    --text-soft: #d0e0f1;
 
     --card-bg: rgba(7, 18, 34, 0.70);
     --card-border: rgba(124, 161, 197, 0.12);
@@ -66,12 +67,17 @@ html[data-theme="dark"] {
 
     --toggle-bg: rgba(15, 23, 42, 0.75);
     --toggle-color: #f8fafc;
+    --option-bg: #0c192c;
 
     --danger-bg: rgba(127, 29, 29, 0.28);
     --danger-border: rgba(248, 113, 113, 0.18);
     --danger-text: #fecaca;
 
     --ring: 0 0 0 0.20rem rgba(34, 211, 238, 0.14);
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
 }
 
 * {
@@ -317,6 +323,17 @@ body {
     padding-inline: 0.95rem;
 }
 
+.swim-input-group .form-control::placeholder {
+    color: var(--text-soft) !important;
+    opacity: 1;
+}
+
+.swim-input-group .form-select option,
+.branch-select option {
+    background: var(--option-bg);
+    color: var(--text-main);
+}
+
 .branch-select {
     cursor: pointer;
     background-position: left 0.95rem center !important;
@@ -354,6 +371,11 @@ body {
     border-radius: 16px;
     padding: 0.95rem 1rem;
     font-size: 0.93rem;
+    font-weight: 700;
+}
+
+.invalid-feedback {
+    color: var(--danger-text);
     font-weight: 700;
 }
 
