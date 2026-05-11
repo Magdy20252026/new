@@ -121,6 +121,7 @@ class ControlPanelTest extends TestCase
             ->assertSee('السباحين')
             ->assertSee('المدربين')
             ->assertSee('الاحصائيات')
+            ->assertSee('sidebar-nav-link sidebar-nav-button is-disabled', false)
             ->assertSee('تسجيل الخروج');
     }
 
