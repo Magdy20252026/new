@@ -90,11 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    if (typeof desktopQuery.addEventListener === 'function') {
-        desktopQuery.addEventListener('change', syncSidebarState);
-    } else if (typeof desktopQuery.addListener === 'function') {
-        desktopQuery.addListener(syncSidebarState);
-    }
+    desktopQuery.addEventListener('change', syncSidebarState);
 
     document.querySelectorAll('.branch-scope-select').forEach(function (select) {
         const target = document.querySelector(select.dataset.target);
