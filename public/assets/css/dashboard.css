@@ -684,6 +684,8 @@ html[data-theme="dark"] .icon-dark {
 
 .top-form-grid .branch-scope-block,
 .trainer-form .trainer-form-actions,
+.trainer-files-form .trainer-file-preview-card,
+.trainer-files-form .trainer-form-actions,
 .settings-form .logo-preview-card,
 .settings-form .form-actions-row {
     grid-column: 1 / -1;
@@ -871,12 +873,28 @@ html[data-theme="dark"] .alert-danger {
     z-index: 1;
 }
 
+.trainer-files-header-card {
+    padding-bottom: 1.1rem;
+}
+
+.trainer-files-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
 .trainer-form-actions {
     flex-wrap: wrap;
 }
 
 .trainer-transfer-select {
     font-weight: 800;
+}
+
+.trainer-files-form {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .trainer-name-cell {
@@ -907,6 +925,64 @@ html[data-theme="dark"] .alert-danger {
     display: flex;
     flex-wrap: wrap;
     gap: 0.55rem;
+}
+
+.trainer-file-preview-card,
+.trainer-file-card {
+    background: rgba(15, 95, 215, 0.04);
+}
+
+.trainer-file-preview-box {
+    width: min(100%, 260px);
+    min-height: 260px;
+}
+
+.trainer-file-preview-image {
+    max-height: 220px;
+}
+
+.trainer-files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.trainer-file-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid var(--line);
+}
+
+.trainer-file-image-link {
+    display: block;
+    aspect-ratio: 4 / 3;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.trainer-file-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.trainer-file-body {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+}
+
+.trainer-file-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-main);
+    word-break: break-word;
+}
+
+.trainer-file-actions {
+    align-items: center;
 }
 
 .settings-panel {
@@ -1106,6 +1182,10 @@ html[data-theme="dark"] .alert-danger {
 
     .form-actions-row {
         flex-direction: column;
+    }
+
+    .trainer-file-preview-box {
+        width: 100%;
     }
 
     .form-submit-row .primary-btn,
