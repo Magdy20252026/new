@@ -6,6 +6,7 @@ use App\Models\AppSetting;
 use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class ControlPanelTest extends TestCase
@@ -101,5 +102,30 @@ class ControlPanelTest extends TestCase
             ->assertJson(['theme' => 'dark']);
 
         $this->assertSame('dark', AppSetting::valueFor('theme_mode'));
+    }
+
+    public function test_login_page_loads_when_branches_table_is_missing(): void
+    {
+        Schema::dropIfExists('branch_user');
+        Schema::dropIfExists('branches');
+
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('قاعدة البيانات غير مهيأة بعد');
+    }
+
+    public function test_login_request_does_not_crash_when_branches_table_is_missing(): void
+    {
+        Schema::dropIfExists('branch_user');
+        Schema::dropIfExists('branches');
+
+        $this->from(route('login'))
+            ->post(route('login.submit'), [
+                'branch_id' => 1,
+                'username' => 'magdy',
+                'password' => '123456',
+            ])
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors(['username']);
     }
 }

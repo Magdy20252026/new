@@ -8,6 +8,7 @@ use App\Support\ControlPanel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class LoginController extends Controller
@@ -18,15 +19,24 @@ class LoginController extends Controller
             return redirect()->route('dashboard');
         }
 
+        $setupError = $this->loginSetupError();
+
         return view('auth.login', [
             'siteSettings' => ControlPanel::siteSettings(),
             'themeMode' => ControlPanel::themeMode(),
-            'branches' => Branch::query()->orderBy('name')->get(),
+            'branches' => $setupError ? collect() : Branch::query()->orderBy('name')->get(),
+            'setupError' => $setupError,
         ]);
     }
 
     public function login(Request $request): RedirectResponse
     {
+        if ($setupError = $this->loginSetupError()) {
+            return back()
+                ->withInput($request->only('username'))
+                ->withErrors(['username' => $setupError]);
+        }
+
         $credentials = $request->validate([
             'branch_id' => ['required', 'integer', 'exists:branches,id'],
             'username' => ['required', 'string'],
@@ -75,5 +85,18 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('login');
+    }
+
+    private function loginSetupError(): ?string
+    {
+        if (! Schema::hasTable('users') || ! Schema::hasTable('branches')) {
+            return 'قاعدة البيانات غير مهيأة بعد. شغل php artisan migrate --seed ثم أعد تحميل الصفحة.';
+        }
+
+        if (! Branch::query()->exists()) {
+            return 'لا توجد فروع متاحة لتسجيل الدخول. شغل php artisan db:seed ثم أعد تحميل الصفحة.';
+        }
+
+        return null;
     }
 }
