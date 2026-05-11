@@ -8,9 +8,26 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class SiteSettingController extends Controller
 {
+    protected const LOGO_EXTENSIONS = [
+        'jpg',
+        'jpeg',
+        'png',
+        'gif',
+        'bmp',
+        'svg',
+        'webp',
+        'avif',
+        'tiff',
+        'tif',
+        'ico',
+        'heic',
+        'heif',
+    ];
+
     public function edit(Request $request)
     {
         return $this->dashboardView($request, 'settings.edit', [
@@ -25,6 +42,7 @@ class SiteSettingController extends Controller
             'site_logo' => [
                 'nullable',
                 'file',
+                'extensions:'.implode(',', self::LOGO_EXTENSIONS),
                 function (string $attribute, UploadedFile $value, \Closure $fail): void {
                     if (! str_starts_with((string) $value->getMimeType(), 'image/')) {
                         $fail('ملف الشعار يجب أن يكون صورة صالحة.');
@@ -75,6 +93,14 @@ class SiteSettingController extends Controller
 
     protected function resolveLogoExtension(UploadedFile $uploadedFile): string
     {
-        return $uploadedFile->guessExtension() ?: 'img';
+        $extension = strtolower($uploadedFile->getClientOriginalExtension());
+
+        if (in_array($extension, self::LOGO_EXTENSIONS, true)) {
+            return $extension;
+        }
+
+        throw ValidationException::withMessages([
+            'site_logo' => 'امتداد ملف الشعار غير مدعوم.',
+        ]);
     }
 }

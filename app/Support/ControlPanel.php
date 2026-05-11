@@ -27,7 +27,7 @@ class ControlPanel
         return [
             'site_name' => AppSetting::valueFor('site_name', 'لوحة التحكم'),
             'site_logo_path' => $siteLogoPath,
-            'site_logo' => static::resolveAssetUrl($siteLogoPath),
+            'site_logo' => static::sanitizeLogoUrl($siteLogoPath),
             'theme_mode' => static::themeMode(),
         ];
     }
@@ -137,13 +137,17 @@ class ControlPanel
         ];
     }
 
-    protected static function resolveAssetUrl(?string $path): string
+    protected static function sanitizeLogoUrl(?string $path): string
     {
         if (blank($path)) {
             return asset('assets/images/logo.png');
         }
 
-        if (filter_var($path, FILTER_VALIDATE_URL) || str_starts_with($path, '/')) {
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return asset('assets/images/logo.png');
+        }
+
+        if (str_starts_with($path, '/')) {
             return $path;
         }
 
