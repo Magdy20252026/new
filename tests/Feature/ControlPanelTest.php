@@ -115,14 +115,31 @@ class ControlPanelTest extends TestCase
             ->get(route('dashboard'));
 
         $response->assertOk()
+            ->assertSee('الرئيسية')
             ->assertSee('الفروع')
             ->assertSee('المستخدمين')
             ->assertSee('صلاحيات المستخدمين')
             ->assertSee('السباحين')
             ->assertSee('المدربين')
             ->assertSee('الاحصائيات')
+            ->assertDontSee('روابط سريعة')
             ->assertSee('sidebar-nav-link sidebar-nav-button is-disabled', false)
             ->assertSee('تسجيل الخروج');
+    }
+
+    public function test_manager_pages_include_home_navigation_link(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        $response = $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('users.index'));
+
+        $response->assertOk()
+            ->assertSee(route('dashboard'))
+            ->assertSee('الرئيسية');
     }
 
     public function test_login_page_loads_when_branches_table_is_missing(): void

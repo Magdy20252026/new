@@ -91,6 +91,7 @@ class ControlPanel
     public static function menuItems(string $active, User $user): array
     {
         return [
+            static::menuItem('الرئيسية', 'bi-house-door-fill', route('dashboard'), $active === 'dashboard'),
             static::menuItem('الفروع', 'bi-diagram-3-fill', $user->isManager() ? route('branches.index') : null, $active === 'branches'),
             static::menuItem('المستخدمين', 'bi-people-fill', $user->isManager() ? route('users.index') : null, $active === 'users'),
             static::menuItem('صلاحيات المستخدمين', 'bi-shield-lock-fill'),

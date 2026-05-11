@@ -93,6 +93,13 @@
                 </div>
 
                 <div class="topbar-left">
+                    @if(($pageTitle ?? 'الرئيسية') !== 'الرئيسية')
+                        <a href="{{ route('dashboard') }}" class="topbar-home-link">
+                            <i class="bi bi-house-door-fill"></i>
+                            <span>الرئيسية</span>
+                        </a>
+                    @endif
+
                     <button type="button" class="topbar-btn" id="themeToggle" aria-label="تبديل الوضع">
                         <i class="bi bi-moon-stars-fill icon-dark"></i>
                         <i class="bi bi-brightness-high-fill icon-light"></i>
@@ -101,7 +108,7 @@
             </header>
 
             <div class="breadcrumb-bar">
-                <div class="breadcrumb-item">لوحة التحكم</div>
+                <a href="{{ route('dashboard') }}" class="breadcrumb-item breadcrumb-link">لوحة التحكم</a>
                 <i class="bi bi-chevron-left breadcrumb-separator"></i>
                 <div class="breadcrumb-item active">{{ $pageTitle ?? 'الرئيسية' }}</div>
             </div>
