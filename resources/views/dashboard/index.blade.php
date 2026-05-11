@@ -14,6 +14,11 @@
     </section>
 
     <section class="stats-grid">
+        <div class="stats-grid-header">
+            <h2 class="section-title">الإحصائيات</h2>
+            <p class="stats-grid-text">ملخص سريع لبيانات لوحة التحكم الحالية.</p>
+        </div>
+
         @foreach($stats as $stat)
             <div class="stat-card">
                 <div class="stat-card-icon">
@@ -25,19 +30,4 @@
         @endforeach
     </section>
 
-    <section class="quick-actions-panel">
-        <h2 class="section-title">روابط سريعة</h2>
-        <div class="quick-actions-grid">
-            <a href="{{ route('branches.index') }}" class="quick-action-card {{ $authUser->isManager() ? '' : 'disabled' }}">
-                <span class="quick-action-icon"><i class="bi bi-diagram-3-fill"></i></span>
-                <span class="quick-action-title">الفروع</span>
-                <span class="quick-action-text">فتح إدارة الفروع</span>
-            </a>
-            <a href="{{ route('users.index') }}" class="quick-action-card {{ $authUser->isManager() ? '' : 'disabled' }}">
-                <span class="quick-action-icon"><i class="bi bi-people-fill"></i></span>
-                <span class="quick-action-title">المستخدمين</span>
-                <span class="quick-action-text">فتح إدارة المستخدمين</span>
-            </a>
-        </div>
-    </section>
 @endsection
