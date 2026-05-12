@@ -5,6 +5,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\ThemeController;
+use App\Http\Controllers\TrainerAdvanceController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\TrainerFileController;
 use App\Http\Controllers\TrainerHourController;
@@ -29,6 +30,8 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/theme', [ThemeController::class, 'update'])->name('theme.update');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
     Route::resource('trainer-hours', TrainerHourController::class)
+        ->except(['create', 'show']);
+    Route::resource('trainer-advances', TrainerAdvanceController::class)
         ->except(['create', 'show']);
 
     Route::middleware('manager')->group(function (): void {

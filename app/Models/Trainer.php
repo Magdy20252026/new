@@ -45,6 +45,13 @@ class Trainer extends Model
         return $this->hasMany(TrainerHour::class)->orderByDesc('worked_on');
     }
 
+    public function trainerAdvances(): HasMany
+    {
+        return $this->hasMany(TrainerAdvance::class)
+            ->orderByDesc('advanced_on')
+            ->orderByDesc('created_at');
+    }
+
     protected static function booted(): void
     {
         static::deleting(function (self $trainer): void {
