@@ -30,4 +30,25 @@
         @endforeach
     </section>
 
+    @if($authUser->isManager())
+        <section class="quick-actions-panel">
+            <div class="stats-grid-header">
+                <h2 class="section-title">إعدادات سريعة</h2>
+                <p class="stats-grid-text">وصول مباشر لأهم إعدادات القبض الخاصة بالمدربين.</p>
+            </div>
+
+            <div class="quick-actions-grid">
+                <a href="{{ route('trainer-payment-week.edit') }}" class="quick-action-card">
+                    <div class="quick-action-icon">
+                        <i class="bi bi-calendar-week-fill"></i>
+                    </div>
+                    <div class="quick-action-title">بداية اسبوع قبض المدربين</div>
+                    <div class="quick-action-text">
+                        من {{ $trainerPaymentWeek['start_label'] }} إلى {{ $trainerPaymentWeek['end_label'] }}
+                    </div>
+                </a>
+            </div>
+        </section>
+    @endif
+
 @endsection

@@ -1106,6 +1106,87 @@ html[data-theme="dark"] .alert-danger {
     object-fit: contain;
 }
 
+.payout-week-hero-card,
+.payout-week-panel {
+    max-width: 980px;
+}
+
+.payout-week-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.9fr);
+    gap: 1rem;
+    align-items: center;
+}
+
+.payout-week-kicker {
+    color: var(--primary);
+}
+
+.payout-week-title {
+    margin-bottom: 0.75rem;
+}
+
+.payout-week-text {
+    margin: 0;
+    color: var(--text-soft);
+    font-weight: 700;
+    line-height: 1.9;
+}
+
+.payout-week-summary-card,
+.payout-week-field-card,
+.payout-week-note {
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background: rgba(15, 95, 215, 0.05);
+}
+
+.payout-week-summary-card {
+    padding: 1.2rem;
+    display: grid;
+    gap: 0.55rem;
+}
+
+.payout-week-summary-label {
+    color: var(--text-soft);
+    font-weight: 800;
+}
+
+.payout-week-summary-value {
+    color: var(--text-main);
+    font-size: 1.1rem;
+    font-weight: 900;
+    line-height: 1.8;
+}
+
+.payout-week-form {
+    gap: 1.25rem;
+}
+
+.payout-week-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.payout-week-field-card {
+    padding: 1.1rem;
+}
+
+.payout-week-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.95rem 1rem;
+    color: var(--text-main);
+    font-weight: 800;
+}
+
+.payout-week-note i {
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
 @media (max-width: 1199.98px) {
     .stats-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1142,6 +1223,11 @@ html[data-theme="dark"] .alert-danger {
 
     .content-grid,
     .user-form {
+        grid-template-columns: 1fr;
+    }
+
+    .payout-week-hero,
+    .payout-week-fields {
         grid-template-columns: 1fr;
     }
 

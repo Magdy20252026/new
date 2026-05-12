@@ -289,11 +289,37 @@ class ControlPanelTest extends TestCase
             ->assertSee('المدربين')
             ->assertSee(route('trainer-hours.index'))
             ->assertSee(route('trainer-advances.index'))
+            ->assertSee(route('trainer-payment-week.edit'))
+            ->assertSee('بداية اسبوع قبض المدربين')
             ->assertSee(route('trainers.index'))
             ->assertSee('الاحصائيات')
-            ->assertDontSee('روابط سريعة')
-            ->assertSee('sidebar-nav-link sidebar-nav-button is-disabled', false)
+            ->assertSee('إعدادات سريعة')
             ->assertSee('تسجيل الخروج');
+    }
+
+    public function test_manager_can_update_trainer_payment_week_settings(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->put(route('trainer-payment-week.update'), [
+                'trainer_payment_week_start' => 'saturday',
+                'trainer_payment_week_end' => 'thursday',
+            ])
+            ->assertRedirect(route('trainer-payment-week.edit'));
+
+        $this->assertSame('saturday', AppSetting::valueFor('trainer_payment_week_start'));
+        $this->assertSame('thursday', AppSetting::valueFor('trainer_payment_week_end'));
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('trainer-payment-week.edit'))
+            ->assertOk()
+            ->assertSee('بداية اسبوع قبض المدربين')
+            ->assertSee('من السبت إلى الخميس');
     }
 
     public function test_manager_can_manage_trainer_hours_with_attendance_and_absence_by_date(): void

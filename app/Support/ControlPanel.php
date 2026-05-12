@@ -11,6 +11,16 @@ use Illuminate\Support\Facades\Schema;
 
 class ControlPanel
 {
+    protected const TRAINER_PAYMENT_WEEK_DAYS = [
+        'saturday' => 'السبت',
+        'sunday' => 'الأحد',
+        'monday' => 'الاثنين',
+        'tuesday' => 'الثلاثاء',
+        'wednesday' => 'الأربعاء',
+        'thursday' => 'الخميس',
+        'friday' => 'الجمعة',
+    ];
+
     public static function siteSettings(): array
     {
         if (! Schema::hasTable('app_settings')) {
@@ -44,6 +54,42 @@ class ControlPanel
     public static function normalizeTheme(?string $theme): string
     {
         return $theme === 'dark' ? 'dark' : 'light';
+    }
+
+    public static function trainerPaymentWeekDayOptions(): array
+    {
+        return self::TRAINER_PAYMENT_WEEK_DAYS;
+    }
+
+    public static function trainerPaymentWeek(): array
+    {
+        $defaultStartDay = 'saturday';
+        $defaultEndDay = 'thursday';
+
+        if (! Schema::hasTable('app_settings')) {
+            return [
+                'start_day' => $defaultStartDay,
+                'end_day' => $defaultEndDay,
+                'start_label' => self::TRAINER_PAYMENT_WEEK_DAYS[$defaultStartDay],
+                'end_label' => self::TRAINER_PAYMENT_WEEK_DAYS[$defaultEndDay],
+            ];
+        }
+
+        $startDay = static::normalizeTrainerPaymentWeekDay(
+            AppSetting::valueFor('trainer_payment_week_start', $defaultStartDay),
+            $defaultStartDay,
+        );
+        $endDay = static::normalizeTrainerPaymentWeekDay(
+            AppSetting::valueFor('trainer_payment_week_end', $defaultEndDay),
+            $defaultEndDay,
+        );
+
+        return [
+            'start_day' => $startDay,
+            'end_day' => $endDay,
+            'start_label' => self::TRAINER_PAYMENT_WEEK_DAYS[$startDay],
+            'end_label' => self::TRAINER_PAYMENT_WEEK_DAYS[$endDay],
+        ];
     }
 
     public static function accessibleBranchesQuery(User $user): Builder
@@ -116,7 +162,12 @@ class ControlPanel
             static::menuItem('المدربين', 'bi-person-workspace', $user->isManager() ? route('trainers.index') : null, $active === 'trainers'),
             static::menuItem('ساعات المدربين', 'bi-clock-history', route('trainer-hours.index'), $active === 'trainer-hours'),
             static::menuItem('سلف المدربين', 'bi-wallet2', route('trainer-advances.index'), $active === 'trainer-advances'),
-            static::menuItem('قبض المدربين', 'bi-cash-coin'),
+            static::menuItem(
+                'بداية اسبوع قبض المدربين',
+                'bi-cash-coin',
+                $user->isManager() ? route('trainer-payment-week.edit') : null,
+                $active === 'trainer-payment-week',
+            ),
             static::menuItem('الإداريين', 'bi-people'),
             static::menuItem('قبض الإداريين', 'bi-credit-card-2-front-fill'),
             static::menuItem('الأصناف', 'bi-box-seam-fill'),
@@ -152,6 +203,13 @@ class ControlPanel
         }
 
         return asset($path);
+    }
+
+    protected static function normalizeTrainerPaymentWeekDay(?string $day, string $default): string
+    {
+        return array_key_exists($day ?? '', self::TRAINER_PAYMENT_WEEK_DAYS)
+            ? $day
+            : $default;
     }
 
     protected static function menuItem(
