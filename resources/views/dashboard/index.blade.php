@@ -42,7 +42,7 @@
                     <div class="quick-action-icon">
                         <i class="bi bi-calendar-week-fill"></i>
                     </div>
-                    <div class="quick-action-title">بداية اسبوع قبض المدربين</div>
+                    <div class="quick-action-title">بداية أسبوع قبض المدربين</div>
                     <div class="quick-action-text">
                         من {{ $trainerPaymentWeek['start_label'] }} إلى {{ $trainerPaymentWeek['end_label'] }}
                     </div>

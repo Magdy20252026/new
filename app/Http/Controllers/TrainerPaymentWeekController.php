@@ -13,7 +13,7 @@ class TrainerPaymentWeekController extends Controller
     public function edit(Request $request)
     {
         return $this->dashboardView($request, 'trainer-payment-week.edit', [
-            'pageTitle' => 'بداية اسبوع قبض المدربين',
+            'pageTitle' => 'بداية أسبوع قبض المدربين',
             'paymentWeek' => ControlPanel::trainerPaymentWeek(),
             'weekDays' => ControlPanel::trainerPaymentWeekDayOptions(),
         ], 'trainer-payment-week');

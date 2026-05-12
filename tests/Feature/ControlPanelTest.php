@@ -290,7 +290,7 @@ class ControlPanelTest extends TestCase
             ->assertSee(route('trainer-hours.index'))
             ->assertSee(route('trainer-advances.index'))
             ->assertSee(route('trainer-payment-week.edit'))
-            ->assertSee('بداية اسبوع قبض المدربين')
+            ->assertSee('بداية أسبوع قبض المدربين')
             ->assertSee(route('trainers.index'))
             ->assertSee('الاحصائيات')
             ->assertSee('إعدادات سريعة')
@@ -318,7 +318,7 @@ class ControlPanelTest extends TestCase
             ->withSession(['current_branch_id' => $branch->id])
             ->get(route('trainer-payment-week.edit'))
             ->assertOk()
-            ->assertSee('بداية اسبوع قبض المدربين')
+            ->assertSee('بداية أسبوع قبض المدربين')
             ->assertSee('من السبت إلى الخميس');
     }
 

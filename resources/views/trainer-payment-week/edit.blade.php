@@ -5,7 +5,7 @@
         <div class="payout-week-hero">
             <div>
                 <div class="hero-kicker payout-week-kicker">إدارة قبض المدربين</div>
-                <h2 class="section-title payout-week-title">بداية اسبوع قبض المدربين</h2>
+                <h2 class="section-title payout-week-title">بداية أسبوع قبض المدربين</h2>
                 <p class="payout-week-text">
                     حدد أيام بداية ونهاية أسبوع قبض المدربين ليتم اعتمادها بشكل واضح داخل لوحة التحكم.
                 </p>

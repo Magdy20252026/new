@@ -163,7 +163,7 @@ class ControlPanel
             static::menuItem('ساعات المدربين', 'bi-clock-history', route('trainer-hours.index'), $active === 'trainer-hours'),
             static::menuItem('سلف المدربين', 'bi-wallet2', route('trainer-advances.index'), $active === 'trainer-advances'),
             static::menuItem(
-                'بداية اسبوع قبض المدربين',
+                'بداية أسبوع قبض المدربين',
                 'bi-cash-coin',
                 $user->isManager() ? route('trainer-payment-week.edit') : null,
                 $active === 'trainer-payment-week',
