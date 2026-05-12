@@ -115,7 +115,7 @@ class ControlPanel
             static::menuItem('تسديد الباقي', 'bi-cash-stack'),
             static::menuItem('المدربين', 'bi-person-workspace', $user->isManager() ? route('trainers.index') : null, $active === 'trainers'),
             static::menuItem('ساعات المدربين', 'bi-clock-history', route('trainer-hours.index'), $active === 'trainer-hours'),
-            static::menuItem('سلف المدربين', 'bi-wallet2'),
+            static::menuItem('سلف المدربين', 'bi-wallet2', route('trainer-advances.index'), $active === 'trainer-advances'),
             static::menuItem('قبض المدربين', 'bi-cash-coin'),
             static::menuItem('الإداريين', 'bi-people'),
             static::menuItem('قبض الإداريين', 'bi-credit-card-2-front-fill'),

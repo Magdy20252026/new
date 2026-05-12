@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AppSetting;
 use App\Models\Branch;
 use App\Models\Trainer;
+use App\Models\TrainerAdvance;
 use App\Models\TrainerFile;
 use App\Models\TrainerHour;
 use App\Models\User;
@@ -287,6 +288,7 @@ class ControlPanelTest extends TestCase
             ->assertSee('السباحين')
             ->assertSee('المدربين')
             ->assertSee(route('trainer-hours.index'))
+            ->assertSee(route('trainer-advances.index'))
             ->assertSee(route('trainers.index'))
             ->assertSee('الاحصائيات')
             ->assertDontSee('روابط سريعة')
@@ -407,6 +409,89 @@ class ControlPanelTest extends TestCase
             ->assertSee($trainer->name)
             ->assertDontSee('إجمالي الراتب')
             ->assertDontSee('إجمالي الرواتب');
+    }
+
+    public function test_manager_can_manage_trainer_advances_by_date_and_branch(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branchOne = Branch::query()->firstOrFail();
+        $branchTwo = Branch::query()->create(['name' => 'فرع السلف الثاني']);
+
+        $branchTrainer = Trainer::query()->create([
+            'branch_id' => $branchOne->id,
+            'name' => 'مدرب السلفة',
+            'phone' => '01000000040',
+            'password' => '123456',
+            'hourly_rate' => '150',
+            'transfer_number' => '135',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+
+        $otherBranchTrainer = Trainer::query()->create([
+            'branch_id' => $branchTwo->id,
+            'name' => 'مدرب فرع آخر',
+            'phone' => '01000000041',
+            'password' => '123456',
+            'hourly_rate' => '165',
+            'transfer_number' => '246',
+            'transfer_type' => Trainer::TRANSFER_TYPE_INSTAPAY,
+        ]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branchOne->id])
+            ->post(route('trainer-advances.store'), [
+                'trainer_id' => $branchTrainer->id,
+                'advanced_on' => '2026-05-12',
+                'amount' => '250',
+            ])
+            ->assertRedirect(route('trainer-advances.index', ['date' => '2026-05-12']));
+
+        $trainerAdvance = TrainerAdvance::query()->where('trainer_id', $branchTrainer->id)->firstOrFail();
+
+        $this->assertSame('250.00', $trainerAdvance->amount);
+
+        TrainerAdvance::query()->create([
+            'trainer_id' => $otherBranchTrainer->id,
+            'advanced_on' => '2026-05-12',
+            'amount' => '375',
+        ]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branchOne->id])
+            ->get(route('trainer-advances.index', ['date' => '2026-05-12']))
+            ->assertOk()
+            ->assertSee('جدول سلف المدربين')
+            ->assertSee($branchTrainer->name)
+            ->assertDontSee($otherBranchTrainer->name)
+            ->assertSee('250');
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branchOne->id])
+            ->put(route('trainer-advances.update', $trainerAdvance), [
+                'trainer_id' => $branchTrainer->id,
+                'advanced_on' => '2026-05-12',
+                'amount' => '300',
+            ])
+            ->assertRedirect(route('trainer-advances.index', ['date' => '2026-05-12']));
+
+        $trainerAdvance->refresh();
+
+        $this->assertSame('300.00', $trainerAdvance->amount);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branchOne->id])
+            ->delete(route('trainer-advances.destroy', $trainerAdvance), ['date' => '2026-05-12'])
+            ->assertRedirect(route('trainer-advances.index', ['date' => '2026-05-12']));
+
+        $this->assertDatabaseMissing('trainer_advances', ['id' => $trainerAdvance->id]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branchOne->id])
+            ->get(route('trainer-advances.index', ['date' => '2026-05-12']))
+            ->assertOk()
+            ->assertDontSee($otherBranchTrainer->name)
+            ->assertSee('لا توجد سلف في هذا اليوم');
     }
 
     public function test_manager_pages_include_home_navigation_link(): void
