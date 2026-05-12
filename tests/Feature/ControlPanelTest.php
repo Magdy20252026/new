@@ -293,7 +293,7 @@ class ControlPanelTest extends TestCase
             ->assertSee('بداية أسبوع قبض المدربين')
             ->assertSee(route('trainers.index'))
             ->assertSee('الاحصائيات')
-            ->assertSee('إعدادات سريعة')
+            ->assertDontSee('إعدادات سريعة')
             ->assertSee('تسجيل الخروج');
     }
 

@@ -4,11 +4,7 @@
     <section class="panel-card payout-week-hero-card">
         <div class="payout-week-hero">
             <div>
-                <div class="hero-kicker payout-week-kicker">إدارة قبض المدربين</div>
                 <h2 class="section-title payout-week-title">بداية أسبوع قبض المدربين</h2>
-                <p class="payout-week-text">
-                    حدد أيام بداية ونهاية أسبوع قبض المدربين ليتم اعتمادها بشكل واضح داخل لوحة التحكم.
-                </p>
             </div>
 
             <div class="payout-week-summary-card">
@@ -38,7 +34,6 @@
                             </option>
                         @endforeach
                     </select>
-                    <div class="form-help-text">اختر اليوم الذي يبدأ منه احتساب أسبوع قبض المدربين.</div>
                 </div>
 
                 <div class="payout-week-field-card">
@@ -53,13 +48,7 @@
                             </option>
                         @endforeach
                     </select>
-                    <div class="form-help-text">اختر اليوم الذي ينتهي عنده أسبوع القبض المعتمد.</div>
                 </div>
-            </div>
-
-            <div class="payout-week-note">
-                <i class="bi bi-info-circle-fill"></i>
-                <span>مثال: يمكن ضبط الأسبوع من السبت إلى الخميس حسب نظام الأكاديمية.</span>
             </div>
 
             <div class="form-actions-row">

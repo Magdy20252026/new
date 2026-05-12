@@ -23,12 +23,9 @@ class DashboardController extends Controller
             ['label' => 'المشرفون', 'value' => (string) $visibleUsers->where('role', 'supervisor')->count(), 'icon' => 'bi-person-badge-fill'],
         ];
 
-        $trainerPaymentWeek = ControlPanel::trainerPaymentWeek();
-
         return $this->dashboardView($request, 'dashboard.index', [
             'pageTitle' => 'الرئيسية',
             'stats' => $stats,
-            'trainerPaymentWeek' => $trainerPaymentWeek,
         ]);
     }
 
