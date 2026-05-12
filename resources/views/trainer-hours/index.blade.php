@@ -49,7 +49,7 @@
             </form>
         </section>
 
-        <section class="panel-card trainer-form-card trainer-hours-card">
+        <section class="panel-card trainer-form-card trainer-hours-card trainer-hours-entry-card">
             <h2 class="section-title">{{ $editedTrainerHour ? 'تعديل ساعات المدرب' : 'إضافة ساعات المدرب' }}</h2>
             <form
                 action="{{ $editedTrainerHour ? route('trainer-hours.update', $editedTrainerHour) : route('trainer-hours.store') }}"
