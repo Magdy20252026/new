@@ -905,9 +905,20 @@ html[data-theme="dark"] .alert-danger {
     max-width: 420px;
 }
 
-.trainer-hours-filter-form,
-.trainer-hours-form {
+.trainer-hours-entry-card {
+    max-width: none;
+}
+
+.trainer-hours-filter-form {
     grid-template-columns: 1fr;
+}
+
+.trainer-hours-form {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.trainer-hours-form .trainer-form-actions {
+    grid-column: 1 / -1;
 }
 
 .trainer-hours-submit-row .primary-btn {
