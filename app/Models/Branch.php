@@ -19,4 +19,14 @@ class Branch extends Model
     {
         return $this->hasMany(Trainer::class);
     }
+
+    public function trainingGroups(): HasMany
+    {
+        return $this->hasMany(TrainingGroup::class);
+    }
+
+    public function swimmers(): HasMany
+    {
+        return $this->hasMany(Swimmer::class);
+    }
 }

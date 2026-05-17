@@ -53,6 +53,11 @@ class TrainingGroupController extends Controller
     public function destroy(Request $request, TrainingGroup $trainingGroup): RedirectResponse
     {
         $trainingGroup = $this->scopedTrainingGroupsQuery($request)->findOrFail($trainingGroup->id);
+
+        if ($trainingGroup->swimmers()->exists()) {
+            return redirect()->route('training-groups.index')->withErrors(['group' => 'لا يمكن حذف المجموعة لوجود سباحين مرتبطين بها']);
+        }
+
         $trainingGroup->delete();
 
         return redirect()->route('training-groups.index')->with('status', 'تم حذف المجموعة');

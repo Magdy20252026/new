@@ -141,6 +141,164 @@ document.addEventListener('DOMContentLoaded', function () {
         hoursInput.addEventListener('input', syncTotal);
     });
 
+
+
+    document.querySelectorAll('[data-swimmer-toggle-form]').forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            const panel = document.querySelector('[data-swimmer-form-panel]');
+
+            if (!panel) {
+                return;
+            }
+
+            event.preventDefault();
+            panel.classList.remove('d-none');
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    document.querySelectorAll('[data-swimmer-form]').forEach(function (form) {
+        const trainingGroups = JSON.parse(form.dataset.trainingGroups || '[]');
+        const serialNumber = Number(form.dataset.nextSerialNumber || 1001);
+        const nameInput = form.querySelector('[data-swimmer-name]');
+        const birthYearInput = form.querySelector('[data-swimmer-birth-year]');
+        const ageInput = form.querySelector('[data-swimmer-age]');
+        const fatherPhoneInput = form.querySelector('[data-swimmer-father-phone]');
+        const motherPhoneInput = form.querySelector('[data-swimmer-mother-phone]');
+        const groupSelect = form.querySelector('[data-swimmer-group]');
+        const barcodeInput = form.querySelector('[data-swimmer-barcode]');
+        const startDateInput = form.querySelector('[data-swimmer-start-date]');
+        const endDateInput = form.querySelector('[data-swimmer-end-date]');
+        const priceInput = form.querySelector('[data-swimmer-price]');
+        const paidInput = form.querySelector('[data-swimmer-paid]');
+        const remainingInput = form.querySelector('[data-swimmer-remaining]');
+
+        if (!nameInput || !birthYearInput || !ageInput || !fatherPhoneInput || !motherPhoneInput || !groupSelect || !barcodeInput || !startDateInput || !endDateInput || !priceInput || !paidInput || !remainingInput) {
+            return;
+        }
+
+        const normalizeSegment = function (value) {
+            return String(value || '').replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+        };
+
+        const selectedGroup = function () {
+            return trainingGroups.find(function (group) {
+                return String(group.id) === String(groupSelect.value || '');
+            }) || null;
+        };
+
+        const formatNumber = function (value) {
+            if (!Number.isFinite(value)) {
+                return '0';
+            }
+
+            return value.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+        };
+
+        const syncAge = function () {
+            const currentYear = new Date().getFullYear();
+            const birthYear = Number(birthYearInput.value || 0);
+            const age = birthYear > 0 ? Math.max(0, currentYear - birthYear) : 0;
+            ageInput.value = String(age);
+
+            return age;
+        };
+
+        const syncEndDate = function () {
+            const group = selectedGroup();
+            const startDate = startDateInput.value;
+
+            if (!group || !startDate) {
+                return;
+            }
+
+            const trainingDaysPerWeek = Math.max(1, Number(group.training_days_per_week || 1));
+            const availableTrainingDays = Math.max(1, Number(group.available_training_days || 1));
+            const weeks = Math.max(1, Math.ceil(availableTrainingDays / trainingDaysPerWeek));
+            const date = new Date(startDate + 'T00:00:00');
+            date.setDate(date.getDate() + (weeks * 7));
+            endDateInput.value = date.toISOString().slice(0, 10);
+        };
+
+        const syncRemaining = function () {
+            const remaining = Number(priceInput.value || 0) - Number(paidInput.value || 0);
+            remainingInput.value = formatNumber(remaining);
+        };
+
+        const syncBarcode = function () {
+            const age = syncAge();
+            const groupName = selectedGroup()?.name || '';
+            const segments = [
+                serialNumber,
+                normalizeSegment(nameInput.value),
+                normalizeSegment(birthYearInput.value),
+                age,
+                normalizeSegment(fatherPhoneInput.value),
+                normalizeSegment(motherPhoneInput.value),
+                normalizeSegment(groupName),
+            ].filter(function (segment) {
+                return String(segment).length > 0;
+            });
+
+            barcodeInput.value = segments.join('-');
+        };
+
+        const syncPriceFromGroup = function () {
+            const group = selectedGroup();
+
+            if (!group) {
+                return;
+            }
+
+            priceInput.value = formatNumber(Number(group.price || 0));
+        };
+
+        syncAge();
+        syncEndDate();
+        syncRemaining();
+        syncBarcode();
+
+        groupSelect.addEventListener('change', function () {
+            syncPriceFromGroup();
+            syncEndDate();
+            syncRemaining();
+            syncBarcode();
+        });
+
+        [nameInput, birthYearInput, fatherPhoneInput, motherPhoneInput].forEach(function (input) {
+            input.addEventListener('input', syncBarcode);
+        });
+        startDateInput.addEventListener('change', syncEndDate);
+        priceInput.addEventListener('input', function () {
+            syncRemaining();
+        });
+        paidInput.addEventListener('input', syncRemaining);
+    });
+
+    document.querySelectorAll('[data-swimmer-files-form]').forEach(function (form) {
+        const typeSelect = form.querySelector('[data-swimmer-file-type]');
+        const fileInput = form.querySelector('[data-swimmer-file-input]');
+        const helpText = form.querySelector('[data-swimmer-file-help]');
+
+        if (!typeSelect || !fileInput) {
+            return;
+        }
+
+        const syncInputMode = function () {
+            const isMedical = typeSelect.value === 'medical_report';
+            fileInput.multiple = isMedical;
+
+            if (helpText) {
+                helpText.textContent = isMedical
+                    ? 'يمكنك رفع أكثر من صورة للتقرير الطبي في مرة واحدة.'
+                    : 'يمكنك رفع صورة واحدة لهذا النوع من الملفات.';
+            }
+        };
+
+        syncInputMode();
+        typeSelect.addEventListener('change', syncInputMode);
+    });
+
     document.querySelectorAll('[data-training-group-form]').forEach(function (form) {
         const weekDays = JSON.parse(form.dataset.weekDays || '{}');
         const initialSchedule = JSON.parse(form.dataset.initialSchedule || '[]');

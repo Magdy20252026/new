@@ -154,7 +154,7 @@ class ControlPanel
             static::menuItem('المستخدمين', 'bi-people-fill', $user->isManager() ? route('users.index') : null, $active === 'users'),
             static::menuItem('صلاحيات المستخدمين', 'bi-shield-lock-fill'),
             static::menuItem('المجموعات', 'bi-collection-fill', $user->isManager() ? route('training-groups.index') : null, $active === 'training-groups'),
-            static::menuItem('السباحين', 'bi-person-arms-up'),
+            static::menuItem('السباحين', 'bi-person-arms-up', $user->isManager() ? route('swimmers.index') : null, $active === 'swimmers'),
             static::menuItem('تسكين السباحين', 'bi-diagram-2-fill'),
             static::menuItem('حضور السباحين', 'bi-calendar2-check-fill'),
             static::menuItem('تجديد الاشتراكات', 'bi-arrow-repeat'),
