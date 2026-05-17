@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\AdministratorController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SiteSettingController;
@@ -37,6 +38,7 @@ Route::middleware('auth')->group(function (): void {
         ->except(['create', 'show']);
 
     Route::middleware('manager')->group(function (): void {
+        Route::resource('administrators', AdministratorController::class)->except(['create', 'show']);
         Route::resource('branches', BranchController::class)->except(['create', 'show']);
         Route::resource('trainers', TrainerController::class)->except(['create', 'show']);
         Route::resource('trainers.files', TrainerFileController::class)

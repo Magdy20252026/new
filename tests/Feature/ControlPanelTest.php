@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\AppSetting;
+use App\Models\Administrator;
 use App\Models\Branch;
 use App\Models\Trainer;
 use App\Models\TrainerAdvance;
@@ -119,6 +120,54 @@ class ControlPanelTest extends TestCase
             ->assertRedirect(route('trainers.index'));
 
         $this->assertDatabaseMissing('trainers', ['id' => $trainer->id]);
+    }
+
+    public function test_manager_can_create_update_and_delete_administrator(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('administrators.store'), [
+                'name' => 'أحمد علي',
+                'phone' => '01000000100',
+                'job_title' => 'مشرف إداري',
+                'salary' => '4500',
+            ])
+            ->assertRedirect(route('administrators.index'));
+
+        $administrator = Administrator::query()->where('phone', '01000000100')->firstOrFail();
+
+        $this->assertSame($branch->id, $administrator->branch_id);
+        $this->assertSame('أحمد علي', $administrator->name);
+        $this->assertSame('مشرف إداري', $administrator->job_title);
+        $this->assertSame('4500.00', $administrator->salary);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->put(route('administrators.update', $administrator), [
+                'name' => 'أحمد محمد',
+                'phone' => '01000000101',
+                'job_title' => 'مدير إداري',
+                'salary' => '5200',
+            ])
+            ->assertRedirect(route('administrators.index'));
+
+        $administrator->refresh();
+
+        $this->assertSame('أحمد محمد', $administrator->name);
+        $this->assertSame('01000000101', $administrator->phone);
+        $this->assertSame('مدير إداري', $administrator->job_title);
+        $this->assertSame('5200.00', $administrator->salary);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->delete(route('administrators.destroy', $administrator))
+            ->assertRedirect(route('administrators.index'));
+
+        $this->assertDatabaseMissing('administrators', ['id' => $administrator->id]);
     }
 
     public function test_manager_can_manage_trainer_files(): void
@@ -258,6 +307,37 @@ class ControlPanelTest extends TestCase
         $response->assertOk()->assertSee('scoped')->assertDontSee('other');
     }
 
+    public function test_administrator_page_shows_only_administrators_for_current_branch(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branchOne = Branch::query()->firstOrFail();
+        $branchTwo = Branch::query()->create(['name' => 'فرع 2']);
+
+        $administratorOne = Administrator::query()->create([
+            'branch_id' => $branchOne->id,
+            'name' => 'إداري الفرع الأول',
+            'phone' => '01000000200',
+            'job_title' => 'سكرتير',
+            'salary' => '4000',
+        ]);
+
+        $administratorTwo = Administrator::query()->create([
+            'branch_id' => $branchTwo->id,
+            'name' => 'إداري الفرع الثاني',
+            'phone' => '01000000201',
+            'job_title' => 'محاسب',
+            'salary' => '4300',
+        ]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branchOne->id])
+            ->get(route('administrators.index'))
+            ->assertOk()
+            ->assertSee($administratorOne->name)
+            ->assertDontSee($administratorTwo->name);
+    }
+
     public function test_authenticated_user_can_update_theme(): void
     {
         $this->seed();
@@ -288,11 +368,13 @@ class ControlPanelTest extends TestCase
             ->assertSee('صلاحيات المستخدمين')
             ->assertSee('السباحين')
             ->assertSee('المدربين')
+            ->assertSee(route('administrators.index'))
             ->assertSee(route('trainer-hours.index'))
             ->assertSee(route('trainer-advances.index'))
             ->assertSee(route('trainer-payrolls.index'))
             ->assertSee(route('trainer-payment-week.edit'))
             ->assertSee('قبض المدربين')
+            ->assertSee('الإداريين')
             ->assertSee('بداية أسبوع قبض المدربين')
             ->assertSee(route('trainers.index'))
             ->assertSee('الاحصائيات')
