@@ -166,6 +166,56 @@ document.addEventListener('DOMContentLoaded', function () {
             return Array.from(scheduleContainer.querySelectorAll('[data-training-group-row]'));
         };
 
+        const firstTimeInput = function () {
+            return scheduleRows()[0]?.querySelector('[data-training-group-schedule-time]') || null;
+        };
+
+        const currentFirstTime = function () {
+            return normalizeTime(firstTimeInput()?.value || '');
+        };
+
+        const syncFollowerTimeState = function (timeInput) {
+            if (!timeInput) {
+                return;
+            }
+
+            const isFirstRow = timeInput.closest('[data-training-group-row]') === scheduleRows()[0];
+
+            if (isFirstRow) {
+                return;
+            }
+
+            const firstTime = currentFirstTime();
+            const currentValue = normalizeTime(timeInput.value || '');
+            timeInput.dataset.trainingGroupFollowFirstTime = currentValue === '' || currentValue === firstTime ? 'true' : 'false';
+        };
+
+        const syncTimesFromFirstDay = function () {
+            const previousFirstTime = normalizeTime(form.dataset.trainingGroupFirstTime || '');
+            const firstTime = currentFirstTime();
+
+            scheduleRows().slice(1).forEach(function (row) {
+                const timeInput = row.querySelector('[data-training-group-schedule-time]');
+
+                if (!timeInput) {
+                    return;
+                }
+
+                const currentValue = normalizeTime(timeInput.value || '');
+                const followsFirstTime = timeInput.dataset.trainingGroupFollowFirstTime !== 'false';
+                const shouldSync = followsFirstTime || currentValue === '' || (previousFirstTime !== '' && currentValue === previousFirstTime);
+
+                if (!shouldSync) {
+                    return;
+                }
+
+                timeInput.value = firstTime;
+                timeInput.dataset.trainingGroupFollowFirstTime = 'true';
+            });
+
+            form.dataset.trainingGroupFirstTime = firstTime;
+        };
+
         const createScheduleRow = function (index, entry) {
             const row = document.createElement('div');
             row.className = 'training-groups-schedule-row';
@@ -208,6 +258,7 @@ document.addEventListener('DOMContentLoaded', function () {
             timeInput.step = '60';
             timeInput.value = normalizeTime(entry?.time || '');
             timeInput.dataset.trainingGroupScheduleTime = 'true';
+            timeInput.dataset.trainingGroupFollowFirstTime = index === 0 ? 'false' : (entry?.time ? 'false' : 'true');
 
             timeField.appendChild(timeLabel);
             timeField.appendChild(timeInput);
@@ -254,6 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.querySelector('[data-training-group-schedule-time]').name = 'schedule[' + index + '][time]';
             });
 
+            syncTimesFromFirstDay();
             syncName();
         };
 
@@ -262,7 +314,31 @@ document.addEventListener('DOMContentLoaded', function () {
         levelSelect.addEventListener('change', syncName);
         trainerSelect.addEventListener('change', syncName);
         trainingDaysInput.addEventListener('input', syncScheduleRows);
-        scheduleContainer.addEventListener('input', syncName);
-        scheduleContainer.addEventListener('change', syncName);
+        scheduleContainer.addEventListener('input', function (event) {
+            if (event.target?.matches('[data-training-group-schedule-time]')) {
+                const row = event.target.closest('[data-training-group-row]');
+
+                if (row === scheduleRows()[0]) {
+                    syncTimesFromFirstDay();
+                } else {
+                    syncFollowerTimeState(event.target);
+                }
+            }
+
+            syncName();
+        });
+        scheduleContainer.addEventListener('change', function (event) {
+            if (event.target?.matches('[data-training-group-schedule-time]')) {
+                const row = event.target.closest('[data-training-group-row]');
+
+                if (row === scheduleRows()[0]) {
+                    syncTimesFromFirstDay();
+                } else {
+                    syncFollowerTimeState(event.target);
+                }
+            }
+
+            syncName();
+        });
     });
 });
