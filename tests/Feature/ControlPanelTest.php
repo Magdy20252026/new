@@ -575,16 +575,17 @@ class ControlPanelTest extends TestCase
                 ])
                 ->assertRedirect(route('trainer-payrolls.index', ['trainer_id' => $trainer->id]));
 
-            $this->assertDatabaseHas('trainer_payrolls', [
-                'branch_id' => $branch->id,
-                'trainer_id' => $trainer->id,
-                'period_start' => '2026-05-10',
-                'period_end' => '2026-05-16',
-                'hours' => '5.00',
-                'hourly_rate' => '150.00',
-                'total_amount' => '750.00',
-                'status' => TrainerPayroll::STATUS_PAID,
-            ]);
+            $trainerPayroll = TrainerPayroll::query()
+                ->where('branch_id', $branch->id)
+                ->where('trainer_id', $trainer->id)
+                ->where('status', TrainerPayroll::STATUS_PAID)
+                ->firstOrFail();
+
+            $this->assertSame('2026-05-10', $trainerPayroll->period_start->toDateString());
+            $this->assertSame('2026-05-16', $trainerPayroll->period_end->toDateString());
+            $this->assertSame('5.00', $trainerPayroll->hours);
+            $this->assertSame('150.00', $trainerPayroll->hourly_rate);
+            $this->assertSame('750.00', $trainerPayroll->total_amount);
 
             $this->actingAs($manager)
                 ->withSession(['current_branch_id' => $branch->id])
