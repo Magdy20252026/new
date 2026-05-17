@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdministratorController;
+use App\Http\Controllers\AdministratorPayrollController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DashboardController;
@@ -39,6 +40,8 @@ Route::middleware('auth')->group(function (): void {
 
     Route::middleware('manager')->group(function (): void {
         Route::resource('administrators', AdministratorController::class)->except(['create', 'show']);
+        Route::get('administrator-payrolls', [AdministratorPayrollController::class, 'index'])->name('administrator-payrolls.index');
+        Route::post('administrator-payrolls', [AdministratorPayrollController::class, 'store'])->name('administrator-payrolls.store');
         Route::resource('branches', BranchController::class)->except(['create', 'show']);
         Route::resource('trainers', TrainerController::class)->except(['create', 'show']);
         Route::resource('trainers.files', TrainerFileController::class)
