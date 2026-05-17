@@ -305,7 +305,7 @@ class ControlPanelTest extends TestCase
                 'level' => 'تجهيزي فرق جديد',
                 'trainer_id' => $trainer->id,
                 'training_days_per_week' => 2,
-                'available_training_days' => 4,
+                'available_training_days' => 12,
                 'max_swimmers' => 24,
                 'price' => '650',
                 'schedule' => [
@@ -331,7 +331,7 @@ class ControlPanelTest extends TestCase
                 'level' => 'فرق استارات 2 نجمة',
                 'trainer_id' => $trainer->id,
                 'training_days_per_week' => 1,
-                'available_training_days' => 3,
+                'available_training_days' => 9,
                 'max_swimmers' => 20,
                 'price' => '720',
                 'schedule' => [
@@ -344,7 +344,7 @@ class ControlPanelTest extends TestCase
 
         $this->assertSame('فرق استارات 2 نجمة - مدرب المجموعة - الاثنين 18:15', $trainingGroup->name);
         $this->assertSame(1, $trainingGroup->training_days_per_week);
-        $this->assertSame(3, $trainingGroup->available_training_days);
+        $this->assertSame(9, $trainingGroup->available_training_days);
         $this->assertSame(20, $trainingGroup->max_swimmers);
         $this->assertSame('720.00', $trainingGroup->price);
 
