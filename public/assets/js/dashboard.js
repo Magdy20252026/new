@@ -166,6 +166,72 @@ document.addEventListener('DOMContentLoaded', function () {
             return Array.from(scheduleContainer.querySelectorAll('[data-training-group-row]'));
         };
 
+        const setFollowFirstTime = function (timeInput, followsFirstTime) {
+            if (!timeInput) {
+                return;
+            }
+
+            timeInput.dataset.trainingGroupFollowFirstTime = followsFirstTime ? 'true' : 'false';
+        };
+
+        const followsFirstTime = function (timeInput) {
+            return timeInput?.dataset.trainingGroupFollowFirstTime === 'true';
+        };
+
+        const currentFirstTime = function (firstRow) {
+            const resolvedFirstRow = firstRow || scheduleRows()[0] || null;
+
+            return normalizeTime(resolvedFirstRow?.querySelector('[data-training-group-schedule-time]')?.value || '');
+        };
+
+        const syncFollowerTimeState = function (timeInput, row, firstRow) {
+            if (!timeInput) {
+                return;
+            }
+
+            const isFirstRow = row === firstRow;
+
+            if (isFirstRow) {
+                return;
+            }
+
+            const firstTime = currentFirstTime(firstRow);
+            const currentValue = normalizeTime(timeInput.value || '');
+            setFollowFirstTime(timeInput, currentValue === '' || currentValue === firstTime);
+        };
+
+        const syncTimesFromFirstDay = function () {
+            const rows = scheduleRows();
+            const firstRow = rows[0] || null;
+            // Track the previous first-day time so rows that were auto-filled earlier can keep following future changes.
+            const previousFirstTime = normalizeTime(form.dataset.trainingGroupFirstTime || '');
+            const firstTime = currentFirstTime(firstRow);
+
+            rows.slice(1).forEach(function (row) {
+                const timeInput = row.querySelector('[data-training-group-schedule-time]');
+
+                if (!timeInput) {
+                    return;
+                }
+
+                const currentValue = normalizeTime(timeInput.value || '');
+                const isExplicitlyFollowing = followsFirstTime(timeInput);
+                const isEmpty = currentValue === '';
+                const matchesPreviousFirstTime = previousFirstTime !== '' && currentValue === previousFirstTime;
+                // Sync rows that still follow the first day, are blank, or still match the previously auto-filled first-day time.
+                const shouldSync = isExplicitlyFollowing || isEmpty || matchesPreviousFirstTime;
+
+                if (!shouldSync) {
+                    return;
+                }
+
+                timeInput.value = firstTime;
+                setFollowFirstTime(timeInput, true);
+            });
+
+            form.dataset.trainingGroupFirstTime = firstTime;
+        };
+
         const createScheduleRow = function (index, entry) {
             const row = document.createElement('div');
             row.className = 'training-groups-schedule-row';
@@ -208,6 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
             timeInput.step = '60';
             timeInput.value = normalizeTime(entry?.time || '');
             timeInput.dataset.trainingGroupScheduleTime = 'true';
+            setFollowFirstTime(timeInput, index !== 0 && !entry?.time);
 
             timeField.appendChild(timeLabel);
             timeField.appendChild(timeInput);
@@ -254,15 +321,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 row.querySelector('[data-training-group-schedule-time]').name = 'schedule[' + index + '][time]';
             });
 
+            syncTimesFromFirstDay();
             syncName();
         };
 
         syncScheduleRows();
 
+        const handleScheduleTimeChange = function (event) {
+            if (event.target?.matches('[data-training-group-schedule-time]')) {
+                const row = event.target.closest('[data-training-group-row]');
+                const firstRow = scheduleRows()[0] || null;
+
+                if (row === firstRow) {
+                    syncTimesFromFirstDay();
+                } else {
+                    syncFollowerTimeState(event.target, row, firstRow);
+                }
+            }
+
+            syncName();
+        };
+
         levelSelect.addEventListener('change', syncName);
         trainerSelect.addEventListener('change', syncName);
         trainingDaysInput.addEventListener('input', syncScheduleRows);
-        scheduleContainer.addEventListener('input', syncName);
-        scheduleContainer.addEventListener('change', syncName);
+        scheduleContainer.addEventListener('input', handleScheduleTimeChange);
+        scheduleContainer.addEventListener('change', handleScheduleTimeChange);
     });
 });
