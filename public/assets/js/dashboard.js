@@ -106,6 +106,12 @@ document.addEventListener('DOMContentLoaded', function () {
         select.addEventListener('change', syncScope);
     });
 
+    document.querySelectorAll('[data-auto-submit-select]').forEach(function (select) {
+        select.addEventListener('change', function () {
+            select.form?.requestSubmit();
+        });
+    });
+
     document.querySelectorAll('.trainer-hours-form').forEach(function (form) {
         const trainerSelect = form.querySelector('[data-trainer-hours-trainer]');
         const hoursInput = form.querySelector('[data-trainer-hours-input]');

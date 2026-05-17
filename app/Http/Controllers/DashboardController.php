@@ -22,10 +22,20 @@ class DashboardController extends Controller
             ['label' => 'المديرون', 'value' => (string) $visibleUsers->where('role', 'manager')->count(), 'icon' => 'bi-shield-fill-check'],
             ['label' => 'المشرفون', 'value' => (string) $visibleUsers->where('role', 'supervisor')->count(), 'icon' => 'bi-person-badge-fill'],
         ];
+        $quickActions = $user->isManager()
+            ? [
+                [
+                    'title' => 'قبض المدربين',
+                    'icon' => 'bi-cash-stack',
+                    'route' => route('trainer-payrolls.index'),
+                ],
+            ]
+            : [];
 
         return $this->dashboardView($request, 'dashboard.index', [
             'pageTitle' => 'الرئيسية',
             'stats' => $stats,
+            'quickActions' => $quickActions,
         ]);
     }
 
