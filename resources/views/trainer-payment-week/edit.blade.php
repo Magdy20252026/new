@@ -1,21 +1,6 @@
 @extends('layouts.dashboard')
 
 @section('content')
-    <section class="panel-card payout-week-hero-card">
-        <div class="payout-week-hero">
-            <div>
-                <h2 class="section-title payout-week-title">بداية أسبوع قبض المدربين</h2>
-            </div>
-
-            <div class="payout-week-summary-card">
-                <div class="payout-week-summary-label">الفترة الحالية</div>
-                <div class="payout-week-summary-value">
-                    من {{ $paymentWeek['start_label'] }} إلى {{ $paymentWeek['end_label'] }}
-                </div>
-            </div>
-        </div>
-    </section>
-
     <section class="panel-card form-panel payout-week-panel">
         <form action="{{ route('trainer-payment-week.update') }}" method="POST" class="form-grid payout-week-form">
             @csrf

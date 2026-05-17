@@ -319,7 +319,9 @@ class ControlPanelTest extends TestCase
             ->get(route('trainer-payment-week.edit'))
             ->assertOk()
             ->assertSee('بداية أسبوع قبض المدربين')
-            ->assertSee('من السبت إلى الخميس');
+            ->assertSee('يوم بداية القبض')
+            ->assertSee('يوم نهاية القبض')
+            ->assertDontSee('الفترة الحالية');
     }
 
     public function test_manager_can_manage_trainer_hours_with_attendance_and_absence_by_date(): void
