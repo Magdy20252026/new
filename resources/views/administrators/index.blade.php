@@ -1,5 +1,6 @@
 @php
     $formatNumber = static fn ($value) => rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
+    $administratorTableColumnCount = 5;
 @endphp
 
 @extends('layouts.dashboard')
@@ -119,7 +120,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">
+                                <td colspan="{{ $administratorTableColumnCount }}" class="text-center text-muted py-4">
                                     {{ $setupError ?: 'لا يوجد إداريون مضافون حالياً.' }}
                                 </td>
                             </tr>

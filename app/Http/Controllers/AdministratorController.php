@@ -21,7 +21,7 @@ class AdministratorController extends Controller
     public function store(Request $request): RedirectResponse
     {
         if ($setupError = $this->administratorsSetupError()) {
-            return back()->withErrors(['name' => $setupError]);
+            return back()->withErrors(['setup' => $setupError]);
         }
 
         $currentBranch = ControlPanel::currentBranch($request->user());
