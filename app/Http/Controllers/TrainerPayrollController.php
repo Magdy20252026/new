@@ -11,6 +11,7 @@ use App\Support\TrainerPayrollCycle;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class TrainerPayrollController extends Controller
@@ -21,38 +22,45 @@ class TrainerPayrollController extends Controller
         $paymentWeek = ControlPanel::trainerPaymentWeek();
         $currentPeriod = TrainerPayrollCycle::currentPeriod(now(), $paymentWeek);
 
-        $this->syncHeldPayrolls($branch, $paymentWeek, $currentPeriod['start']);
-
         $trainers = Trainer::query()
             ->where('branch_id', $branch->id)
             ->orderBy('name')
             ->get();
 
-        $selectedTrainer = $this->selectedTrainer($request, $branch);
-        $selectedSummary = $this->selectedTrainerSummary($selectedTrainer, $currentPeriod);
-        $paidPayrolls = TrainerPayroll::query()
-            ->with('trainer')
-            ->where('branch_id', $branch->id)
-            ->where('status', TrainerPayroll::STATUS_PAID)
-            ->whereBetween('paid_at', [
-                $currentPeriod['start']->startOfDay(),
-                $currentPeriod['end']->endOfDay(),
-            ])
-            ->orderByDesc('paid_at')
-            ->orderByDesc('id')
-            ->get();
-        $heldPayrolls = TrainerPayroll::query()
-            ->with('trainer')
-            ->where('branch_id', $branch->id)
-            ->where('status', TrainerPayroll::STATUS_HELD)
-            ->orderByDesc('period_end')
-            ->orderByDesc('id')
-            ->get();
+        $setupError = $this->payrollSetupError();
+        $selectedTrainer = $setupError ? null : $this->selectedTrainer($request, $branch);
+        $selectedSummary = $setupError ? $this->emptySummary() : $this->selectedTrainerSummary($selectedTrainer, $currentPeriod);
+        $paidPayrolls = collect();
+        $heldPayrolls = collect();
+
+        if (! $setupError) {
+            $this->syncHeldPayrolls($branch, $paymentWeek, $currentPeriod['start']);
+
+            $paidPayrolls = TrainerPayroll::query()
+                ->with('trainer')
+                ->where('branch_id', $branch->id)
+                ->where('status', TrainerPayroll::STATUS_PAID)
+                ->whereBetween('paid_at', [
+                    $currentPeriod['start']->startOfDay(),
+                    $currentPeriod['end']->endOfDay(),
+                ])
+                ->orderByDesc('paid_at')
+                ->orderByDesc('id')
+                ->get();
+            $heldPayrolls = TrainerPayroll::query()
+                ->with('trainer')
+                ->where('branch_id', $branch->id)
+                ->where('status', TrainerPayroll::STATUS_HELD)
+                ->orderByDesc('period_end')
+                ->orderByDesc('id')
+                ->get();
+        }
 
         return $this->dashboardView($request, 'trainer-payrolls.index', [
             'pageTitle' => 'قبض المدربين',
             'paymentWeek' => $paymentWeek,
             'currentPeriod' => $currentPeriod,
+            'setupError' => $setupError,
             'trainers' => $trainers,
             'selectedTrainer' => $selectedTrainer,
             'selectedSummary' => $selectedSummary,
@@ -67,6 +75,10 @@ class TrainerPayrollController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if ($setupError = $this->payrollSetupError()) {
+            return back()->withErrors(['trainer_id' => $setupError]);
+        }
+
         $branch = $this->currentBranch($request);
         $paymentWeek = ControlPanel::trainerPaymentWeek();
         $currentPeriod = TrainerPayrollCycle::currentPeriod(now(), $paymentWeek);
@@ -99,11 +111,15 @@ class TrainerPayrollController extends Controller
             ->with('status', 'تم صرف راتب المدرب');
     }
 
-    public function release(Request $request, TrainerPayroll $trainerPayroll): RedirectResponse
+    public function release(Request $request, string $trainerPayroll): RedirectResponse
     {
+        if ($setupError = $this->payrollSetupError()) {
+            return back()->withErrors(['trainer_id' => $setupError]);
+        }
+
         $branch = $this->currentBranch($request);
         $trainerPayroll = TrainerPayroll::query()
-            ->whereKey($trainerPayroll->id)
+            ->whereKey($trainerPayroll)
             ->where('branch_id', $branch->id)
             ->where('status', TrainerPayroll::STATUS_HELD)
             ->firstOrFail();
@@ -279,5 +295,14 @@ class TrainerPayrollController extends Controller
                     'held_at' => now(),
                 ]);
             });
+    }
+
+    protected function payrollSetupError(): ?string
+    {
+        if (! Schema::hasTable('trainer_payrolls')) {
+            return 'جدول قبض المدربين غير مهيأ بعد. شغل php artisan migrate ثم أعد تحميل الصفحة.';
+        }
+
+        return null;
     }
 }

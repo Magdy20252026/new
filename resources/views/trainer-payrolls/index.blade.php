@@ -31,6 +31,10 @@
         </section>
 
         <section class="panel-card trainer-payrolls-panel">
+            @if($setupError)
+                <div class="alert alert-danger panel-alert mb-3">{{ $setupError }}</div>
+            @endif
+
             <form action="{{ route('trainer-payrolls.index') }}" method="GET" class="form-grid trainer-payrolls-filter-form">
                 <div>
                     <label class="form-label" for="trainer_payroll_trainer">المدرب</label>
