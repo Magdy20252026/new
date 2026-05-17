@@ -311,34 +311,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
         syncScheduleRows();
 
+        const handleScheduleTimeChange = function (event) {
+            if (event.target?.matches('[data-training-group-schedule-time]')) {
+                const row = event.target.closest('[data-training-group-row]');
+
+                if (row === scheduleRows()[0]) {
+                    syncTimesFromFirstDay();
+                } else {
+                    syncFollowerTimeState(event.target);
+                }
+            }
+
+            syncName();
+        };
+
         levelSelect.addEventListener('change', syncName);
         trainerSelect.addEventListener('change', syncName);
         trainingDaysInput.addEventListener('input', syncScheduleRows);
-        scheduleContainer.addEventListener('input', function (event) {
-            if (event.target?.matches('[data-training-group-schedule-time]')) {
-                const row = event.target.closest('[data-training-group-row]');
-
-                if (row === scheduleRows()[0]) {
-                    syncTimesFromFirstDay();
-                } else {
-                    syncFollowerTimeState(event.target);
-                }
-            }
-
-            syncName();
-        });
-        scheduleContainer.addEventListener('change', function (event) {
-            if (event.target?.matches('[data-training-group-schedule-time]')) {
-                const row = event.target.closest('[data-training-group-row]');
-
-                if (row === scheduleRows()[0]) {
-                    syncTimesFromFirstDay();
-                } else {
-                    syncFollowerTimeState(event.target);
-                }
-            }
-
-            syncName();
-        });
+        scheduleContainer.addEventListener('input', handleScheduleTimeChange);
+        scheduleContainer.addEventListener('change', handleScheduleTimeChange);
     });
 });
