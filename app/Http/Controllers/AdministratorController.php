@@ -8,6 +8,7 @@ use App\Support\ControlPanel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class AdministratorController extends Controller
@@ -19,6 +20,10 @@ class AdministratorController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if ($setupError = $this->administratorsSetupError()) {
+            return back()->withErrors(['setup' => $setupError]);
+        }
+
         $currentBranch = ControlPanel::currentBranch($request->user());
         abort_unless($currentBranch, 403);
         $data = $this->validatedPayload($request, $currentBranch);
@@ -57,9 +62,12 @@ class AdministratorController extends Controller
 
     protected function administratorsView(Request $request, ?Administrator $editedAdministrator = null)
     {
+        $setupError = $this->administratorsSetupError();
+
         return $this->dashboardView($request, 'administrators.index', [
             'pageTitle' => 'الإداريين',
-            'administrators' => $this->scopedAdministratorsQuery($request)->get(),
+            'setupError' => $setupError,
+            'administrators' => $setupError ? collect() : $this->scopedAdministratorsQuery($request)->get(),
             'editedAdministrator' => $editedAdministrator,
         ], 'administrators');
     }
@@ -91,5 +99,14 @@ class AdministratorController extends Controller
             'salary.required' => 'الراتب مطلوب',
             'salary.numeric' => 'الراتب غير صحيح',
         ]) + ['branch_id' => $branch->id];
+    }
+
+    protected function administratorsSetupError(): ?string
+    {
+        if (! Schema::hasTable('administrators')) {
+            return 'جدول الإداريين غير مهيأ بعد. شغّل php artisan migrate ثم أعد تحميل الصفحة.';
+        }
+
+        return null;
     }
 }
