@@ -166,35 +166,33 @@ document.addEventListener('DOMContentLoaded', function () {
             return Array.from(scheduleContainer.querySelectorAll('[data-training-group-row]'));
         };
 
-        const firstTimeInput = function () {
-            return scheduleRows()[0]?.querySelector('[data-training-group-schedule-time]') || null;
+        const currentFirstTime = function (firstRow = scheduleRows()[0] || null) {
+            return normalizeTime(firstRow?.querySelector('[data-training-group-schedule-time]')?.value || '');
         };
 
-        const currentFirstTime = function () {
-            return normalizeTime(firstTimeInput()?.value || '');
-        };
-
-        const syncFollowerTimeState = function (timeInput) {
+        const syncFollowerTimeState = function (timeInput, row, firstRow) {
             if (!timeInput) {
                 return;
             }
 
-            const isFirstRow = timeInput.closest('[data-training-group-row]') === scheduleRows()[0];
+            const isFirstRow = row === firstRow;
 
             if (isFirstRow) {
                 return;
             }
 
-            const firstTime = currentFirstTime();
+            const firstTime = currentFirstTime(firstRow);
             const currentValue = normalizeTime(timeInput.value || '');
             timeInput.dataset.trainingGroupFollowFirstTime = currentValue === '' || currentValue === firstTime ? 'true' : 'false';
         };
 
         const syncTimesFromFirstDay = function () {
+            const rows = scheduleRows();
+            const firstRow = rows[0] || null;
             const previousFirstTime = normalizeTime(form.dataset.trainingGroupFirstTime || '');
-            const firstTime = currentFirstTime();
+            const firstTime = currentFirstTime(firstRow);
 
-            scheduleRows().slice(1).forEach(function (row) {
+            rows.slice(1).forEach(function (row) {
                 const timeInput = row.querySelector('[data-training-group-schedule-time]');
 
                 if (!timeInput) {
@@ -314,11 +312,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const handleScheduleTimeChange = function (event) {
             if (event.target?.matches('[data-training-group-schedule-time]')) {
                 const row = event.target.closest('[data-training-group-row]');
+                const firstRow = scheduleRows()[0] || null;
 
-                if (row === scheduleRows()[0]) {
+                if (row === firstRow) {
                     syncTimesFromFirstDay();
                 } else {
-                    syncFollowerTimeState(event.target);
+                    syncFollowerTimeState(event.target, row, firstRow);
                 }
             }
 
