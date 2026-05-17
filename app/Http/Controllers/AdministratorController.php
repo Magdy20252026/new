@@ -104,7 +104,7 @@ class AdministratorController extends Controller
     protected function administratorsSetupError(): ?string
     {
         if (! Schema::hasTable('administrators')) {
-            return 'جدول الإداريين غير مهيأ بعد. شغل php artisan migrate ثم أعد تحميل الصفحة.';
+            return 'جدول الإداريين غير مهيأ بعد. شغّل php artisan migrate ثم أعد تحميل الصفحة.';
         }
 
         return null;

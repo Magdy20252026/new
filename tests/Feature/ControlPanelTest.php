@@ -350,7 +350,7 @@ class ControlPanelTest extends TestCase
             ->withSession(['current_branch_id' => $branch->id])
             ->get(route('administrators.index'))
             ->assertOk()
-            ->assertSee('جدول الإداريين غير مهيأ بعد. شغل php artisan migrate ثم أعد تحميل الصفحة.');
+            ->assertSee('جدول الإداريين غير مهيأ بعد. شغّل php artisan migrate ثم أعد تحميل الصفحة.');
     }
 
     public function test_authenticated_user_can_update_theme(): void
