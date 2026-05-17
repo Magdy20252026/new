@@ -153,7 +153,7 @@ class ControlPanel
             static::menuItem('الفروع', 'bi-diagram-3-fill', $user->isManager() ? route('branches.index') : null, $active === 'branches'),
             static::menuItem('المستخدمين', 'bi-people-fill', $user->isManager() ? route('users.index') : null, $active === 'users'),
             static::menuItem('صلاحيات المستخدمين', 'bi-shield-lock-fill'),
-            static::menuItem('المجموعات', 'bi-collection-fill'),
+            static::menuItem('المجموعات', 'bi-collection-fill', $user->isManager() ? route('training-groups.index') : null, $active === 'training-groups'),
             static::menuItem('السباحين', 'bi-person-arms-up'),
             static::menuItem('تسكين السباحين', 'bi-diagram-2-fill'),
             static::menuItem('حضور السباحين', 'bi-calendar2-check-fill'),
