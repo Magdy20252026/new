@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\AppSetting;
 use App\Models\Administrator;
+use App\Models\AppSetting;
 use App\Models\Branch;
 use App\Models\Trainer;
 use App\Models\TrainerAdvance;

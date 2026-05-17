@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AdministratorController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SiteSettingController;
