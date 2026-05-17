@@ -7,6 +7,10 @@
 @section('content')
     <div class="stacked-content">
         <section class="panel-card trainer-form-card">
+            @if($setupError)
+                <div class="alert alert-danger panel-alert mb-3">{{ $setupError }}</div>
+            @endif
+
             <h2 class="section-title">{{ $editedAdministrator ? 'تعديل إداري' : 'إضافة إداري' }}</h2>
             <form
                 action="{{ $editedAdministrator ? route('administrators.update', $editedAdministrator) : route('administrators.store') }}"
@@ -26,6 +30,7 @@
                         name="name"
                         class="form-control"
                         value="{{ old('name', $editedAdministrator?->name) }}"
+                        @disabled($setupError)
                     >
                 </div>
 
@@ -37,6 +42,7 @@
                         name="phone"
                         class="form-control"
                         value="{{ old('phone', $editedAdministrator?->phone) }}"
+                        @disabled($setupError)
                     >
                 </div>
 
@@ -48,6 +54,7 @@
                         name="job_title"
                         class="form-control"
                         value="{{ old('job_title', $editedAdministrator?->job_title) }}"
+                        @disabled($setupError)
                     >
                 </div>
 
@@ -61,11 +68,12 @@
                         min="0"
                         step="0.01"
                         value="{{ old('salary', $editedAdministrator?->salary) }}"
+                        @disabled($setupError)
                     >
                 </div>
 
                 <div class="form-actions-row trainer-form-actions">
-                    <button type="submit" class="btn primary-btn">{{ $editedAdministrator ? 'حفظ' : 'إضافة' }}</button>
+                    <button type="submit" class="btn primary-btn" @disabled($setupError)>{{ $editedAdministrator ? 'حفظ' : 'إضافة' }}</button>
                     @if($editedAdministrator)
                         <a href="{{ route('administrators.index') }}" class="btn action-btn">إلغاء</a>
                     @endif
@@ -87,7 +95,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($administrators as $administrator)
+                        @forelse($administrators as $administrator)
                             <tr>
                                 <td>
                                     <div class="administrator-name-cell">
@@ -109,7 +117,13 @@
                                     </div>
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    {{ $setupError ?: 'لا يوجد إداريون مضافون حالياً.' }}
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

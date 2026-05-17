@@ -338,6 +338,21 @@ class ControlPanelTest extends TestCase
             ->assertDontSee($administratorTwo->name);
     }
 
+    public function test_administrators_page_shows_setup_error_when_table_is_missing(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        Schema::drop('administrators');
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('administrators.index'))
+            ->assertOk()
+            ->assertSee('جدول الإداريين غير مهيأ بعد. شغل php artisan migrate ثم أعد تحميل الصفحة.');
+    }
+
     public function test_authenticated_user_can_update_theme(): void
     {
         $this->seed();

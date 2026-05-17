@@ -8,6 +8,7 @@ use App\Support\ControlPanel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class AdministratorController extends Controller
@@ -19,6 +20,10 @@ class AdministratorController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if ($setupError = $this->administratorsSetupError()) {
+            return back()->withErrors(['name' => $setupError]);
+        }
+
         $currentBranch = ControlPanel::currentBranch($request->user());
         abort_unless($currentBranch, 403);
         $data = $this->validatedPayload($request, $currentBranch);
@@ -28,18 +33,26 @@ class AdministratorController extends Controller
         return redirect()->route('administrators.index')->with('status', 'تم إضافة الإداري');
     }
 
-    public function edit(Request $request, Administrator $administrator)
+    public function edit(Request $request, string $administrator)
     {
-        $administrator = $this->scopedAdministratorsQuery($request)->findOrFail($administrator->id);
+        if ($setupError = $this->administratorsSetupError()) {
+            return redirect()->route('administrators.index')->withErrors(['name' => $setupError]);
+        }
+
+        $administrator = $this->resolveAdministrator($request, $administrator);
 
         return $this->administratorsView($request, $administrator);
     }
 
-    public function update(Request $request, Administrator $administrator): RedirectResponse
+    public function update(Request $request, string $administrator): RedirectResponse
     {
+        if ($setupError = $this->administratorsSetupError()) {
+            return redirect()->route('administrators.index')->withErrors(['name' => $setupError]);
+        }
+
         $currentBranch = ControlPanel::currentBranch($request->user());
         abort_unless($currentBranch, 403);
-        $administrator = $this->scopedAdministratorsQuery($request)->findOrFail($administrator->id);
+        $administrator = $this->resolveAdministrator($request, $administrator);
         $data = $this->validatedPayload($request, $currentBranch, $administrator);
 
         $administrator->update($data);
@@ -47,9 +60,13 @@ class AdministratorController extends Controller
         return redirect()->route('administrators.index')->with('status', 'تم تحديث الإداري');
     }
 
-    public function destroy(Request $request, Administrator $administrator): RedirectResponse
+    public function destroy(Request $request, string $administrator): RedirectResponse
     {
-        $administrator = $this->scopedAdministratorsQuery($request)->findOrFail($administrator->id);
+        if ($setupError = $this->administratorsSetupError()) {
+            return redirect()->route('administrators.index')->withErrors(['name' => $setupError]);
+        }
+
+        $administrator = $this->resolveAdministrator($request, $administrator);
         $administrator->delete();
 
         return redirect()->route('administrators.index')->with('status', 'تم حذف الإداري');
@@ -57,10 +74,13 @@ class AdministratorController extends Controller
 
     protected function administratorsView(Request $request, ?Administrator $editedAdministrator = null)
     {
+        $setupError = $this->administratorsSetupError();
+
         return $this->dashboardView($request, 'administrators.index', [
             'pageTitle' => 'الإداريين',
-            'administrators' => $this->scopedAdministratorsQuery($request)->get(),
-            'editedAdministrator' => $editedAdministrator,
+            'setupError' => $setupError,
+            'administrators' => $setupError ? collect() : $this->scopedAdministratorsQuery($request)->get(),
+            'editedAdministrator' => $setupError ? null : $editedAdministrator,
         ], 'administrators');
     }
 
@@ -91,5 +111,19 @@ class AdministratorController extends Controller
             'salary.required' => 'الراتب مطلوب',
             'salary.numeric' => 'الراتب غير صحيح',
         ]) + ['branch_id' => $branch->id];
+    }
+
+    protected function resolveAdministrator(Request $request, string $administrator): Administrator
+    {
+        return $this->scopedAdministratorsQuery($request)->findOrFail($administrator);
+    }
+
+    protected function administratorsSetupError(): ?string
+    {
+        if (! Schema::hasTable('administrators')) {
+            return 'جدول الإداريين غير مهيأ بعد. شغل php artisan migrate ثم أعد تحميل الصفحة.';
+        }
+
+        return null;
     }
 }
