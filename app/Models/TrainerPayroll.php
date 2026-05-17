@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'hours',
     'hourly_rate',
     'total_amount',
+    'advance_amount',
+    'net_amount',
     'status',
     'paid_at',
     'held_at',
@@ -42,6 +44,8 @@ class TrainerPayroll extends Model
             'hours' => 'decimal:2',
             'hourly_rate' => 'decimal:2',
             'total_amount' => 'decimal:2',
+            'advance_amount' => 'decimal:2',
+            'net_amount' => 'decimal:2',
             'paid_at' => 'datetime',
             'held_at' => 'datetime',
         ];

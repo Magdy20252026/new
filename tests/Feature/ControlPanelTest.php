@@ -556,6 +556,12 @@ class ControlPanelTest extends TestCase
             'hours' => '3',
         ]);
 
+        TrainerAdvance::query()->create([
+            'trainer_id' => $trainer->id,
+            'advanced_on' => '2026-05-12',
+            'amount' => '100',
+        ]);
+
         $this->travelTo('2026-05-13 12:00:00');
 
         try {
@@ -566,7 +572,9 @@ class ControlPanelTest extends TestCase
                 ->assertSee('قبض المدربين')
                 ->assertSee($trainer->name)
                 ->assertSee('5')
-                ->assertSee('750');
+                ->assertSee('750')
+                ->assertSee('100')
+                ->assertSee('650');
 
             $this->actingAs($manager)
                 ->withSession(['current_branch_id' => $branch->id])
@@ -586,6 +594,8 @@ class ControlPanelTest extends TestCase
             $this->assertSame('5.00', $trainerPayroll->hours);
             $this->assertSame('150.00', $trainerPayroll->hourly_rate);
             $this->assertSame('750.00', $trainerPayroll->total_amount);
+            $this->assertSame('100.00', $trainerPayroll->advance_amount);
+            $this->assertSame('650.00', $trainerPayroll->net_amount);
 
             $this->actingAs($manager)
                 ->withSession(['current_branch_id' => $branch->id])
@@ -593,6 +603,7 @@ class ControlPanelTest extends TestCase
                 ->assertOk()
                 ->assertSee('جدول المرتبات المصروفة')
                 ->assertSee($trainer->name)
+                ->assertSee('650')
                 ->assertSee('2026-05-13');
         } finally {
             $this->travelBack();
@@ -630,6 +641,12 @@ class ControlPanelTest extends TestCase
             'hours' => '2.5',
         ]);
 
+        TrainerAdvance::query()->create([
+            'trainer_id' => $trainer->id,
+            'advanced_on' => '2026-05-05',
+            'amount' => '120',
+        ]);
+
         $this->travelTo('2026-05-13 12:00:00');
 
         try {
@@ -639,7 +656,9 @@ class ControlPanelTest extends TestCase
                 ->assertOk()
                 ->assertSee('جدول الرواتب المحجوزة')
                 ->assertSee($trainer->name)
-                ->assertSee('720');
+                ->assertSee('720')
+                ->assertSee('120')
+                ->assertSee('600');
 
             $heldPayroll = TrainerPayroll::query()
                 ->where('trainer_id', $trainer->id)
@@ -648,6 +667,8 @@ class ControlPanelTest extends TestCase
 
             $this->assertSame('2026-05-03', $heldPayroll->period_start->toDateString());
             $this->assertSame('2026-05-09', $heldPayroll->period_end->toDateString());
+            $this->assertSame('120.00', $heldPayroll->advance_amount);
+            $this->assertSame('600.00', $heldPayroll->net_amount);
 
             $this->actingAs($manager)
                 ->withSession(['current_branch_id' => $branch->id])
@@ -658,6 +679,117 @@ class ControlPanelTest extends TestCase
                 'id' => $heldPayroll->id,
                 'status' => TrainerPayroll::STATUS_PAID,
                 'total_amount' => '720.00',
+                'advance_amount' => '120.00',
+                'net_amount' => '600.00',
+            ]);
+        } finally {
+            $this->travelBack();
+        }
+    }
+
+    public function test_current_trainer_salary_cannot_be_paid_when_advances_consume_the_salary(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        AppSetting::putValue('trainer_payment_week_start', 'sunday');
+        AppSetting::putValue('trainer_payment_week_end', 'saturday');
+
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب صافي سالب',
+            'phone' => '01000000052',
+            'password' => '123456',
+            'hourly_rate' => '100',
+            'transfer_number' => '951',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+
+        TrainerHour::query()->create([
+            'trainer_id' => $trainer->id,
+            'worked_on' => '2026-05-11',
+            'hours' => '2',
+        ]);
+
+        TrainerAdvance::query()->create([
+            'trainer_id' => $trainer->id,
+            'advanced_on' => '2026-05-12',
+            'amount' => '250',
+        ]);
+
+        $this->travelTo('2026-05-13 12:00:00');
+
+        try {
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->get(route('trainer-payrolls.index', ['trainer_id' => $trainer->id]))
+                ->assertOk()
+                ->assertSee('200')
+                ->assertSee('250')
+                ->assertSee('-50');
+
+            $this->from(route('trainer-payrolls.index', ['trainer_id' => $trainer->id]))
+                ->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->post(route('trainer-payrolls.store'), [
+                    'trainer_id' => $trainer->id,
+                ])
+                ->assertRedirect(route('trainer-payrolls.index', ['trainer_id' => $trainer->id]))
+                ->assertSessionHasErrors(['trainer_id']);
+
+            $this->assertDatabaseMissing('trainer_payrolls', [
+                'trainer_id' => $trainer->id,
+                'status' => TrainerPayroll::STATUS_PAID,
+            ]);
+        } finally {
+            $this->travelBack();
+        }
+    }
+
+    public function test_completed_period_with_only_trainer_advance_is_added_to_held_payrolls(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        AppSetting::putValue('trainer_payment_week_start', 'sunday');
+        AppSetting::putValue('trainer_payment_week_end', 'saturday');
+
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب سلفة فقط',
+            'phone' => '01000000053',
+            'password' => '123456',
+            'hourly_rate' => '100',
+            'transfer_number' => '357',
+            'transfer_type' => Trainer::TRANSFER_TYPE_INSTAPAY,
+        ]);
+
+        TrainerAdvance::query()->create([
+            'trainer_id' => $trainer->id,
+            'advanced_on' => '2026-05-05',
+            'amount' => '80',
+        ]);
+
+        $this->travelTo('2026-05-13 12:00:00');
+
+        try {
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->get(route('trainer-payrolls.index', ['trainer_id' => $trainer->id]))
+                ->assertOk()
+                ->assertSee('جدول الرواتب المحجوزة')
+                ->assertSee($trainer->name)
+                ->assertSee('80')
+                ->assertSee('-80');
+
+            $this->assertDatabaseHas('trainer_payrolls', [
+                'trainer_id' => $trainer->id,
+                'status' => TrainerPayroll::STATUS_HELD,
+                'total_amount' => '0.00',
+                'advance_amount' => '80.00',
+                'net_amount' => '-80.00',
             ]);
         } finally {
             $this->travelBack();

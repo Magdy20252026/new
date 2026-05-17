@@ -67,6 +67,14 @@
                     <div class="trainer-payroll-summary-label">إجمالي الراتب</div>
                     <div class="trainer-payroll-summary-value">{{ $formatNumber($selectedSummary['total_amount']) }}</div>
                 </div>
+                <div class="trainer-payroll-summary-card">
+                    <div class="trainer-payroll-summary-label">إجمالي السلف</div>
+                    <div class="trainer-payroll-summary-value">{{ $formatNumber($selectedSummary['advance_amount']) }}</div>
+                </div>
+                <div class="trainer-payroll-summary-card">
+                    <div class="trainer-payroll-summary-label">الراتب النهائي</div>
+                    <div class="trainer-payroll-summary-value">{{ $formatNumber($selectedSummary['net_amount']) }}</div>
+                </div>
             </div>
 
             <div class="trainer-payrolls-actions">
@@ -76,7 +84,7 @@
                     <button
                         type="submit"
                         class="btn primary-btn"
-                        @disabled(! $selectedTrainer || $selectedSummary['total_amount'] <= 0 || $selectedSummary['has_current_payroll'])
+                        @disabled(! $selectedTrainer || $selectedSummary['net_amount'] <= 0 || $selectedSummary['has_current_payroll'])
                     >
                         صرف الراتب
                     </button>
@@ -97,6 +105,8 @@
                                 <th>عدد الساعات</th>
                                 <th>سعر الساعة</th>
                                 <th>إجمالي الراتب</th>
+                                <th>إجمالي السلف</th>
+                                <th>الراتب النهائي</th>
                                 <th>تاريخ الصرف</th>
                             </tr>
                         </thead>
@@ -108,13 +118,15 @@
                                             <span class="trainer-avatar"><i class="bi bi-person-workspace"></i></span>
                                             <span>{{ $trainerPayroll->trainer->name }}</span>
                                         </div>
-                                    </td>
-                                    <td>{{ $formatNumber($trainerPayroll->hours) }}</td>
-                                    <td>{{ $formatNumber($trainerPayroll->hourly_rate) }}</td>
-                                    <td>{{ $formatNumber($trainerPayroll->total_amount) }}</td>
-                                    <td>{{ $formatDate($trainerPayroll->paid_at) }}</td>
-                                </tr>
-                            @endforeach
+                                     </td>
+                                     <td>{{ $formatNumber($trainerPayroll->hours) }}</td>
+                                     <td>{{ $formatNumber($trainerPayroll->hourly_rate) }}</td>
+                                     <td>{{ $formatNumber($trainerPayroll->total_amount) }}</td>
+                                     <td>{{ $formatNumber($trainerPayroll->advance_amount) }}</td>
+                                     <td>{{ $formatNumber($trainerPayroll->net_amount) }}</td>
+                                     <td>{{ $formatDate($trainerPayroll->paid_at) }}</td>
+                                 </tr>
+                             @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -135,6 +147,8 @@
                                 <th>عدد الساعات</th>
                                 <th>سعر الساعة</th>
                                 <th>إجمالي الراتب</th>
+                                <th>إجمالي السلف</th>
+                                <th>الراتب النهائي</th>
                                 <th class="table-actions">الإجراءات</th>
                             </tr>
                         </thead>
@@ -147,13 +161,15 @@
                                             <span>{{ $trainerPayroll->trainer->name }}</span>
                                         </div>
                                     </td>
-                                    <td>{{ $trainerPayroll->period_start->format('Y-m-d') }} - {{ $trainerPayroll->period_end->format('Y-m-d') }}</td>
-                                    <td>{{ $formatNumber($trainerPayroll->hours) }}</td>
-                                    <td>{{ $formatNumber($trainerPayroll->hourly_rate) }}</td>
-                                    <td>{{ $formatNumber($trainerPayroll->total_amount) }}</td>
-                                    <td class="table-actions">
-                                        <form action="{{ route('trainer-payrolls.release', $trainerPayroll) }}" method="POST" class="inline-form">
-                                            @csrf
+                                     <td>{{ $trainerPayroll->period_start->format('Y-m-d') }} - {{ $trainerPayroll->period_end->format('Y-m-d') }}</td>
+                                     <td>{{ $formatNumber($trainerPayroll->hours) }}</td>
+                                     <td>{{ $formatNumber($trainerPayroll->hourly_rate) }}</td>
+                                     <td>{{ $formatNumber($trainerPayroll->total_amount) }}</td>
+                                     <td>{{ $formatNumber($trainerPayroll->advance_amount) }}</td>
+                                     <td>{{ $formatNumber($trainerPayroll->net_amount) }}</td>
+                                     <td class="table-actions">
+                                         <form action="{{ route('trainer-payrolls.release', $trainerPayroll) }}" method="POST" class="inline-form">
+                                             @csrf
                                             <button type="submit" class="btn primary-btn">صرف الراتب</button>
                                         </form>
                                     </td>
