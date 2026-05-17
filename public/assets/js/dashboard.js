@@ -140,4 +140,129 @@ document.addEventListener('DOMContentLoaded', function () {
         trainerSelect.addEventListener('change', syncTotal);
         hoursInput.addEventListener('input', syncTotal);
     });
+
+    document.querySelectorAll('[data-training-group-form]').forEach(function (form) {
+        const weekDays = JSON.parse(form.dataset.weekDays || '{}');
+        const initialSchedule = JSON.parse(form.dataset.initialSchedule || '[]');
+        const levelSelect = form.querySelector('[data-training-group-level]');
+        const trainerSelect = form.querySelector('[data-training-group-trainer]');
+        const trainingDaysInput = form.querySelector('[data-training-group-days]');
+        const nameInput = form.querySelector('[data-training-group-name]');
+        const scheduleContainer = form.querySelector('[data-training-group-schedule]');
+
+        if (!levelSelect || !trainerSelect || !trainingDaysInput || !nameInput || !scheduleContainer) {
+            return;
+        }
+
+        const normalizeTime = function (value) {
+            if (typeof value !== 'string') {
+                return '';
+            }
+
+            return value.slice(0, 5);
+        };
+
+        const scheduleRows = function () {
+            return Array.from(scheduleContainer.querySelectorAll('[data-training-group-row]'));
+        };
+
+        const createScheduleRow = function (index, entry) {
+            const row = document.createElement('div');
+            row.className = 'training-groups-schedule-row';
+            row.dataset.trainingGroupRow = 'true';
+
+            const dayField = document.createElement('div');
+            const dayLabel = document.createElement('label');
+            dayLabel.className = 'form-label';
+            dayLabel.textContent = 'اليوم';
+
+            const daySelect = document.createElement('select');
+            daySelect.className = 'form-select';
+            daySelect.name = 'schedule[' + index + '][day]';
+            daySelect.dataset.trainingGroupScheduleDay = 'true';
+
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            daySelect.appendChild(emptyOption);
+
+            Object.entries(weekDays).forEach(function (dayEntry) {
+                const option = document.createElement('option');
+                option.value = dayEntry[0];
+                option.textContent = dayEntry[1];
+                option.selected = entry?.day === dayEntry[0];
+                daySelect.appendChild(option);
+            });
+
+            dayField.appendChild(dayLabel);
+            dayField.appendChild(daySelect);
+
+            const timeField = document.createElement('div');
+            const timeLabel = document.createElement('label');
+            timeLabel.className = 'form-label';
+            timeLabel.textContent = 'الساعة';
+
+            const timeInput = document.createElement('input');
+            timeInput.type = 'time';
+            timeInput.className = 'form-control';
+            timeInput.name = 'schedule[' + index + '][time]';
+            timeInput.step = '60';
+            timeInput.value = normalizeTime(entry?.time || '');
+            timeInput.dataset.trainingGroupScheduleTime = 'true';
+
+            timeField.appendChild(timeLabel);
+            timeField.appendChild(timeInput);
+
+            row.appendChild(dayField);
+            row.appendChild(timeField);
+
+            return row;
+        };
+
+        const syncName = function () {
+            const level = levelSelect.value || '';
+            const trainerName = trainerSelect.options[trainerSelect.selectedIndex]?.dataset.trainerName || '';
+            const scheduleText = scheduleRows()
+                .map(function (row) {
+                    const day = row.querySelector('[data-training-group-schedule-day]')?.value || '';
+                    const time = normalizeTime(row.querySelector('[data-training-group-schedule-time]')?.value || '');
+
+                    if (!day || !time) {
+                        return '';
+                    }
+
+                    return (weekDays[day] || day) + ' ' + time;
+                })
+                .filter(Boolean);
+
+            nameInput.value = [level, trainerName, ...scheduleText].filter(Boolean).join(' - ');
+        };
+
+        const syncScheduleRows = function () {
+            const totalRows = Math.max(1, Math.min(7, Number(trainingDaysInput.value || 1)));
+            const rows = scheduleRows();
+
+            while (rows.length > totalRows) {
+                rows.pop()?.remove();
+            }
+
+            for (let index = scheduleRows().length; index < totalRows; index += 1) {
+                scheduleContainer.appendChild(createScheduleRow(index, initialSchedule[index]));
+            }
+
+            scheduleRows().forEach(function (row, index) {
+                row.querySelector('[data-training-group-schedule-day]').name = 'schedule[' + index + '][day]';
+                row.querySelector('[data-training-group-schedule-time]').name = 'schedule[' + index + '][time]';
+            });
+
+            syncName();
+        };
+
+        syncScheduleRows();
+
+        levelSelect.addEventListener('change', syncName);
+        trainerSelect.addEventListener('change', syncName);
+        trainingDaysInput.addEventListener('input', syncScheduleRows);
+        scheduleContainer.addEventListener('input', syncName);
+        scheduleContainer.addEventListener('change', syncName);
+    });
 });

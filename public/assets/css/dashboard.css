@@ -939,6 +939,43 @@ html[data-theme="dark"] .alert-danger {
     flex-wrap: wrap;
 }
 
+.training-groups-form {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.training-groups-name-block,
+.training-groups-schedule-block,
+.training-groups-actions {
+    grid-column: 1 / -1;
+}
+
+.training-groups-schedule-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.training-groups-schedule-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 20px;
+    background: rgba(15, 95, 215, 0.05);
+    border: 1px solid rgba(15, 95, 215, 0.08);
+}
+
+.training-groups-name-cell,
+.training-groups-schedule-chips {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.training-groups-name-cell {
+    font-weight: 800;
+}
+
 .trainer-transfer-select {
     font-weight: 800;
 }
@@ -1375,6 +1412,10 @@ html[data-theme="dark"] .alert-danger {
 
     .top-form-grid,
     .branch-inline-form {
+        grid-template-columns: 1fr;
+    }
+
+    .training-groups-schedule-row {
         grid-template-columns: 1fr;
     }
 }

@@ -13,6 +13,7 @@ use App\Http\Controllers\TrainerFileController;
 use App\Http\Controllers\TrainerHourController;
 use App\Http\Controllers\TrainerPaymentWeekController;
 use App\Http\Controllers\TrainerPayrollController;
+use App\Http\Controllers\TrainingGroupController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('administrator-payrolls', [AdministratorPayrollController::class, 'index'])->name('administrator-payrolls.index');
         Route::post('administrator-payrolls', [AdministratorPayrollController::class, 'store'])->name('administrator-payrolls.store');
         Route::resource('branches', BranchController::class)->except(['create', 'show']);
+        Route::resource('training-groups', TrainingGroupController::class)->except(['create', 'show']);
         Route::resource('trainers', TrainerController::class)->except(['create', 'show']);
         Route::resource('trainers.files', TrainerFileController::class)
             ->parameters(['files' => 'trainerFile'])

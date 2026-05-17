@@ -11,6 +11,7 @@ use App\Models\TrainerAdvance;
 use App\Models\TrainerFile;
 use App\Models\TrainerHour;
 use App\Models\TrainerPayroll;
+use App\Models\TrainingGroup;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -283,6 +284,137 @@ class ControlPanelTest extends TestCase
             ->assertDontSee($trainerTwo->name);
     }
 
+    public function test_manager_can_create_update_and_delete_training_group_with_generated_name(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب المجموعة',
+            'phone' => '01000000040',
+            'password' => '123456',
+            'hourly_rate' => '150',
+            'transfer_number' => '741',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('training-groups.store'), [
+                'level' => 'تجهيزي فرق جديد',
+                'trainer_id' => $trainer->id,
+                'training_days_per_week' => 2,
+                'available_training_days' => 4,
+                'max_swimmers' => 24,
+                'price' => '650',
+                'schedule' => [
+                    ['day' => 'saturday', 'time' => '14:00'],
+                    ['day' => 'tuesday', 'time' => '16:30'],
+                ],
+            ])
+            ->assertRedirect(route('training-groups.index'));
+
+        $trainingGroup = TrainingGroup::query()->firstOrFail();
+
+        $this->assertSame($branch->id, $trainingGroup->branch_id);
+        $this->assertSame($trainer->id, $trainingGroup->trainer_id);
+        $this->assertSame('تجهيزي فرق جديد - مدرب المجموعة - السبت 14:00 - الثلاثاء 16:30', $trainingGroup->name);
+        $this->assertSame([
+            ['day' => 'saturday', 'time' => '14:00'],
+            ['day' => 'tuesday', 'time' => '16:30'],
+        ], $trainingGroup->schedule);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->put(route('training-groups.update', $trainingGroup), [
+                'level' => 'فرق استارات 2 نجمة',
+                'trainer_id' => $trainer->id,
+                'training_days_per_week' => 1,
+                'available_training_days' => 3,
+                'max_swimmers' => 20,
+                'price' => '720',
+                'schedule' => [
+                    ['day' => 'monday', 'time' => '18:15'],
+                ],
+            ])
+            ->assertRedirect(route('training-groups.index'));
+
+        $trainingGroup->refresh();
+
+        $this->assertSame('فرق استارات 2 نجمة - مدرب المجموعة - الاثنين 18:15', $trainingGroup->name);
+        $this->assertSame(1, $trainingGroup->training_days_per_week);
+        $this->assertSame(3, $trainingGroup->available_training_days);
+        $this->assertSame(20, $trainingGroup->max_swimmers);
+        $this->assertSame('720.00', $trainingGroup->price);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->delete(route('training-groups.destroy', $trainingGroup))
+            ->assertRedirect(route('training-groups.index'));
+
+        $this->assertDatabaseMissing('training_groups', ['id' => $trainingGroup->id]);
+    }
+
+    public function test_training_groups_page_shows_only_groups_for_current_branch(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branchOne = Branch::query()->firstOrFail();
+        $branchTwo = Branch::query()->create(['name' => 'فرع 2']);
+
+        $trainerOne = Trainer::query()->create([
+            'branch_id' => $branchOne->id,
+            'name' => 'مدرب الفرع الأول',
+            'phone' => '01000000041',
+            'password' => '123456',
+            'hourly_rate' => '120',
+            'transfer_number' => '1111',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+
+        $trainerTwo = Trainer::query()->create([
+            'branch_id' => $branchTwo->id,
+            'name' => 'مدرب الفرع الثاني',
+            'phone' => '01000000042',
+            'password' => '123456',
+            'hourly_rate' => '140',
+            'transfer_number' => '2222',
+            'transfer_type' => Trainer::TRANSFER_TYPE_INSTAPAY,
+        ]);
+
+        $groupOne = TrainingGroup::query()->create([
+            'branch_id' => $branchOne->id,
+            'trainer_id' => $trainerOne->id,
+            'name' => 'مجموعة الفرع الأول',
+            'level' => 'مدارس سباحة',
+            'training_days_per_week' => 1,
+            'available_training_days' => 2,
+            'max_swimmers' => 12,
+            'price' => '300',
+            'schedule' => [['day' => 'saturday', 'time' => '12:00']],
+        ]);
+
+        $groupTwo = TrainingGroup::query()->create([
+            'branch_id' => $branchTwo->id,
+            'trainer_id' => $trainerTwo->id,
+            'name' => 'مجموعة الفرع الثاني',
+            'level' => 'رجال',
+            'training_days_per_week' => 1,
+            'available_training_days' => 2,
+            'max_swimmers' => 16,
+            'price' => '400',
+            'schedule' => [['day' => 'monday', 'time' => '15:00']],
+        ]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branchOne->id])
+            ->get(route('training-groups.index'))
+            ->assertOk()
+            ->assertSee($groupOne->name)
+            ->assertDontSee($groupTwo->name);
+    }
+
     public function test_branch_scoped_user_sees_only_current_branch_users(): void
     {
         $this->seed();
@@ -381,10 +513,12 @@ class ControlPanelTest extends TestCase
             ->assertSee('الرئيسية')
             ->assertSee('الفروع')
             ->assertSee('المستخدمين')
+            ->assertSee('المجموعات')
             ->assertSee('صلاحيات المستخدمين')
             ->assertSee('السباحين')
             ->assertSee('المدربين')
             ->assertSee(route('administrators.index'))
+            ->assertSee(route('training-groups.index'))
             ->assertSee(route('trainer-hours.index'))
             ->assertSee(route('trainer-advances.index'))
             ->assertSee(route('trainer-payrolls.index'))
