@@ -10,6 +10,7 @@ use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\TrainerFileController;
 use App\Http\Controllers\TrainerHourController;
 use App\Http\Controllers\TrainerPaymentWeekController;
+use App\Http\Controllers\TrainerPayrollController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +43,9 @@ Route::middleware('auth')->group(function (): void {
             ->parameters(['files' => 'trainerFile'])
             ->except(['create', 'show']);
         Route::resource('users', UserController::class)->except(['create', 'show']);
+        Route::get('trainer-payrolls', [TrainerPayrollController::class, 'index'])->name('trainer-payrolls.index');
+        Route::post('trainer-payrolls', [TrainerPayrollController::class, 'store'])->name('trainer-payrolls.store');
+        Route::post('trainer-payrolls/{trainerPayroll}/release', [TrainerPayrollController::class, 'release'])->name('trainer-payrolls.release');
         Route::get('trainer-payment-week', [TrainerPaymentWeekController::class, 'edit'])->name('trainer-payment-week.edit');
         Route::put('trainer-payment-week', [TrainerPaymentWeekController::class, 'update'])->name('trainer-payment-week.update');
         Route::get('site-settings', [SiteSettingController::class, 'edit'])->name('site-settings.edit');

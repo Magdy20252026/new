@@ -8,6 +8,7 @@ use App\Models\Trainer;
 use App\Models\TrainerAdvance;
 use App\Models\TrainerFile;
 use App\Models\TrainerHour;
+use App\Models\TrainerPayroll;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -289,7 +290,9 @@ class ControlPanelTest extends TestCase
             ->assertSee('المدربين')
             ->assertSee(route('trainer-hours.index'))
             ->assertSee(route('trainer-advances.index'))
+            ->assertSee(route('trainer-payrolls.index'))
             ->assertSee(route('trainer-payment-week.edit'))
+            ->assertSee('قبض المدربين')
             ->assertSee('بداية أسبوع قبض المدربين')
             ->assertSee(route('trainers.index'))
             ->assertSee('الاحصائيات')
@@ -520,6 +523,145 @@ class ControlPanelTest extends TestCase
             ->assertOk()
             ->assertDontSee($otherBranchTrainer->name)
             ->assertSee('لا توجد سلف في هذا اليوم');
+    }
+
+    public function test_manager_can_pay_current_trainer_salary(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        AppSetting::putValue('trainer_payment_week_start', 'sunday');
+        AppSetting::putValue('trainer_payment_week_end', 'saturday');
+
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب القبض',
+            'phone' => '01000000050',
+            'password' => '123456',
+            'hourly_rate' => '150',
+            'transfer_number' => '753',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+
+        TrainerHour::query()->create([
+            'trainer_id' => $trainer->id,
+            'worked_on' => '2026-05-11',
+            'hours' => '2',
+        ]);
+
+        TrainerHour::query()->create([
+            'trainer_id' => $trainer->id,
+            'worked_on' => '2026-05-12',
+            'hours' => '3',
+        ]);
+
+        $this->travelTo('2026-05-13 12:00:00');
+
+        try {
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->get(route('trainer-payrolls.index', ['trainer_id' => $trainer->id]))
+                ->assertOk()
+                ->assertSee('قبض المدربين')
+                ->assertSee($trainer->name)
+                ->assertSee('5')
+                ->assertSee('750');
+
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->post(route('trainer-payrolls.store'), [
+                    'trainer_id' => $trainer->id,
+                ])
+                ->assertRedirect(route('trainer-payrolls.index', ['trainer_id' => $trainer->id]));
+
+            $trainerPayroll = TrainerPayroll::query()
+                ->where('branch_id', $branch->id)
+                ->where('trainer_id', $trainer->id)
+                ->where('status', TrainerPayroll::STATUS_PAID)
+                ->firstOrFail();
+
+            $this->assertSame('2026-05-10', $trainerPayroll->period_start->toDateString());
+            $this->assertSame('2026-05-16', $trainerPayroll->period_end->toDateString());
+            $this->assertSame('5.00', $trainerPayroll->hours);
+            $this->assertSame('150.00', $trainerPayroll->hourly_rate);
+            $this->assertSame('750.00', $trainerPayroll->total_amount);
+
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->get(route('trainer-payrolls.index', ['trainer_id' => $trainer->id]))
+                ->assertOk()
+                ->assertSee('جدول المرتبات المصروفة')
+                ->assertSee($trainer->name)
+                ->assertSee('2026-05-13');
+        } finally {
+            $this->travelBack();
+        }
+    }
+
+    public function test_unpaid_completed_trainer_salary_moves_to_held_table_and_can_be_released(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        AppSetting::putValue('trainer_payment_week_start', 'sunday');
+        AppSetting::putValue('trainer_payment_week_end', 'saturday');
+
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب راتب محجوز',
+            'phone' => '01000000051',
+            'password' => '123456',
+            'hourly_rate' => '180',
+            'transfer_number' => '852',
+            'transfer_type' => Trainer::TRANSFER_TYPE_INSTAPAY,
+        ]);
+
+        TrainerHour::query()->create([
+            'trainer_id' => $trainer->id,
+            'worked_on' => '2026-05-04',
+            'hours' => '1.5',
+        ]);
+
+        TrainerHour::query()->create([
+            'trainer_id' => $trainer->id,
+            'worked_on' => '2026-05-05',
+            'hours' => '2.5',
+        ]);
+
+        $this->travelTo('2026-05-13 12:00:00');
+
+        try {
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->get(route('trainer-payrolls.index', ['trainer_id' => $trainer->id]))
+                ->assertOk()
+                ->assertSee('جدول الرواتب المحجوزة')
+                ->assertSee($trainer->name)
+                ->assertSee('720');
+
+            $heldPayroll = TrainerPayroll::query()
+                ->where('trainer_id', $trainer->id)
+                ->where('status', TrainerPayroll::STATUS_HELD)
+                ->firstOrFail();
+
+            $this->assertSame('2026-05-03', $heldPayroll->period_start->toDateString());
+            $this->assertSame('2026-05-09', $heldPayroll->period_end->toDateString());
+
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->post(route('trainer-payrolls.release', $heldPayroll))
+                ->assertRedirect(route('trainer-payrolls.index', ['trainer_id' => $trainer->id]));
+
+            $this->assertDatabaseHas('trainer_payrolls', [
+                'id' => $heldPayroll->id,
+                'status' => TrainerPayroll::STATUS_PAID,
+                'total_amount' => '720.00',
+            ]);
+        } finally {
+            $this->travelBack();
+        }
     }
 
     public function test_manager_pages_include_home_navigation_link(): void

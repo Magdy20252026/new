@@ -1145,6 +1145,58 @@ html[data-theme="dark"] .alert-danger {
     font-size: 1.1rem;
 }
 
+.trainer-payrolls-stats {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.trainer-payrolls-panel {
+    display: grid;
+    gap: 1rem;
+}
+
+.trainer-payrolls-filter-form {
+    grid-template-columns: minmax(0, 360px);
+}
+
+.trainer-payroll-select {
+    font-weight: 800;
+}
+
+.trainer-payrolls-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.trainer-payroll-summary-card {
+    padding: 1.1rem;
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background: rgba(15, 95, 215, 0.05);
+}
+
+.trainer-payroll-summary-label {
+    margin-bottom: 0.65rem;
+    color: var(--text-soft);
+    font-weight: 800;
+}
+
+.trainer-payroll-summary-value,
+.trainer-payrolls-date-value {
+    font-size: 1.2rem;
+}
+
+.trainer-payrolls-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.trainer-payrolls-actions .primary-btn,
+.trainer-payrolls-table-card .primary-btn {
+    min-width: 160px;
+}
+
 @media (max-width: 1199.98px) {
     .stats-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1185,6 +1237,10 @@ html[data-theme="dark"] .alert-danger {
     }
 
     .payout-week-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .trainer-payrolls-filter-form {
         grid-template-columns: 1fr;
     }
 

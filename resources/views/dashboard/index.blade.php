@@ -16,7 +16,6 @@
     <section class="stats-grid">
         <div class="stats-grid-header">
             <h2 class="section-title">الإحصائيات</h2>
-            <p class="stats-grid-text">ملخص سريع لبيانات لوحة التحكم الحالية.</p>
         </div>
 
         @foreach($stats as $stat)
@@ -29,5 +28,22 @@
             </div>
         @endforeach
     </section>
+
+    @if(! empty($quickActions))
+        <section class="quick-actions-panel">
+            <h2 class="section-title">اختصارات</h2>
+
+            <div class="quick-actions-grid">
+                @foreach($quickActions as $quickAction)
+                    <a href="{{ $quickAction['route'] }}" class="quick-action-card">
+                        <div class="quick-action-icon">
+                            <i class="bi {{ $quickAction['icon'] }}"></i>
+                        </div>
+                        <div class="quick-action-title">{{ $quickAction['title'] }}</div>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
 
 @endsection

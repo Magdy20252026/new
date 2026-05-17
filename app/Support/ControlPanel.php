@@ -162,6 +162,7 @@ class ControlPanel
             static::menuItem('المدربين', 'bi-person-workspace', $user->isManager() ? route('trainers.index') : null, $active === 'trainers'),
             static::menuItem('ساعات المدربين', 'bi-clock-history', route('trainer-hours.index'), $active === 'trainer-hours'),
             static::menuItem('سلف المدربين', 'bi-wallet2', route('trainer-advances.index'), $active === 'trainer-advances'),
+            static::menuItem('قبض المدربين', 'bi-cash-stack', $user->isManager() ? route('trainer-payrolls.index') : null, $active === 'trainer-payrolls'),
             static::menuItem(
                 'بداية أسبوع قبض المدربين',
                 'bi-cash-coin',

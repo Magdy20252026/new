@@ -52,6 +52,13 @@ class Trainer extends Model
             ->orderByDesc('created_at');
     }
 
+    public function trainerPayrolls(): HasMany
+    {
+        return $this->hasMany(TrainerPayroll::class)
+            ->orderByDesc('period_end')
+            ->orderByDesc('created_at');
+    }
+
     protected static function booted(): void
     {
         static::deleting(function (self $trainer): void {
