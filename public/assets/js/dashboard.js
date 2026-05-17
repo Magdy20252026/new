@@ -166,8 +166,22 @@ document.addEventListener('DOMContentLoaded', function () {
             return Array.from(scheduleContainer.querySelectorAll('[data-training-group-row]'));
         };
 
-        const currentFirstTime = function (firstRow = scheduleRows()[0] || null) {
-            return normalizeTime(firstRow?.querySelector('[data-training-group-schedule-time]')?.value || '');
+        const setFollowFirstTime = function (timeInput, followsFirstTime) {
+            if (!timeInput) {
+                return;
+            }
+
+            timeInput.dataset.trainingGroupFollowFirstTime = followsFirstTime ? 'true' : 'false';
+        };
+
+        const followsFirstTime = function (timeInput) {
+            return timeInput?.dataset.trainingGroupFollowFirstTime !== 'false';
+        };
+
+        const currentFirstTime = function (firstRow) {
+            const resolvedFirstRow = firstRow || scheduleRows()[0] || null;
+
+            return normalizeTime(resolvedFirstRow?.querySelector('[data-training-group-schedule-time]')?.value || '');
         };
 
         const syncFollowerTimeState = function (timeInput, row, firstRow) {
@@ -183,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const firstTime = currentFirstTime(firstRow);
             const currentValue = normalizeTime(timeInput.value || '');
-            timeInput.dataset.trainingGroupFollowFirstTime = currentValue === '' || currentValue === firstTime ? 'true' : 'false';
+            setFollowFirstTime(timeInput, currentValue === '' || currentValue === firstTime);
         };
 
         const syncTimesFromFirstDay = function () {
@@ -200,15 +214,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 const currentValue = normalizeTime(timeInput.value || '');
-                const followsFirstTime = timeInput.dataset.trainingGroupFollowFirstTime !== 'false';
-                const shouldSync = followsFirstTime || currentValue === '' || (previousFirstTime !== '' && currentValue === previousFirstTime);
+                const isExplicitlyFollowing = followsFirstTime(timeInput);
+                const isEmpty = currentValue === '';
+                const matchesPreviousFirstTime = previousFirstTime !== '' && currentValue === previousFirstTime;
+                const shouldSync = isExplicitlyFollowing || isEmpty || matchesPreviousFirstTime;
 
                 if (!shouldSync) {
                     return;
                 }
 
                 timeInput.value = firstTime;
-                timeInput.dataset.trainingGroupFollowFirstTime = 'true';
+                setFollowFirstTime(timeInput, true);
             });
 
             form.dataset.trainingGroupFirstTime = firstTime;
@@ -256,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function () {
             timeInput.step = '60';
             timeInput.value = normalizeTime(entry?.time || '');
             timeInput.dataset.trainingGroupScheduleTime = 'true';
-            timeInput.dataset.trainingGroupFollowFirstTime = index === 0 ? 'false' : (entry?.time ? 'false' : 'true');
+            setFollowFirstTime(timeInput, index !== 0 && !entry?.time);
 
             timeField.appendChild(timeLabel);
             timeField.appendChild(timeInput);
