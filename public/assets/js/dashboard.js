@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const followsFirstTime = function (timeInput) {
-            return timeInput?.dataset.trainingGroupFollowFirstTime !== 'false';
+            return timeInput?.dataset.trainingGroupFollowFirstTime === 'true';
         };
 
         const currentFirstTime = function (firstRow) {
@@ -203,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const syncTimesFromFirstDay = function () {
             const rows = scheduleRows();
             const firstRow = rows[0] || null;
+            // Track the previous first-day time so rows that were auto-filled earlier can keep following future changes.
             const previousFirstTime = normalizeTime(form.dataset.trainingGroupFirstTime || '');
             const firstTime = currentFirstTime(firstRow);
 
@@ -217,6 +218,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const isExplicitlyFollowing = followsFirstTime(timeInput);
                 const isEmpty = currentValue === '';
                 const matchesPreviousFirstTime = previousFirstTime !== '' && currentValue === previousFirstTime;
+                // Sync rows that still follow the first day, are blank, or still match the previously auto-filled first-day time.
                 const shouldSync = isExplicitlyFollowing || isEmpty || matchesPreviousFirstTime;
 
                 if (!shouldSync) {
