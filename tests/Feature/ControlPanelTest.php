@@ -6,6 +6,8 @@ use App\Models\Administrator;
 use App\Models\AdministratorPayroll;
 use App\Models\AppSetting;
 use App\Models\Branch;
+use App\Models\Swimmer;
+use App\Models\SwimmerFile;
 use App\Models\Trainer;
 use App\Models\TrainerAdvance;
 use App\Models\TrainerFile;
@@ -354,6 +356,273 @@ class ControlPanelTest extends TestCase
             ->assertRedirect(route('training-groups.index'));
 
         $this->assertDatabaseMissing('training_groups', ['id' => $trainingGroup->id]);
+    }
+
+
+    public function test_manager_can_create_update_and_delete_swimmer_with_generated_barcode(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب السباحين',
+            'phone' => '01000000043',
+            'password' => '123456',
+            'hourly_rate' => '150',
+            'transfer_number' => '3333',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+        $trainingGroup = TrainingGroup::query()->create([
+            'branch_id' => $branch->id,
+            'trainer_id' => $trainer->id,
+            'name' => 'مجموعة 10 صباحًا',
+            'level' => 'مدارس سباحة',
+            'training_days_per_week' => 2,
+            'available_training_days' => 12,
+            'max_swimmers' => 20,
+            'price' => '650',
+            'schedule' => [['day' => 'saturday', 'time' => '10:00']],
+        ]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('swimmers.store'), [
+                'name' => 'عمر أحمد',
+                'birth_year' => 2016,
+                'father_phone' => '01020030040',
+                'mother_phone' => '01020030041',
+                'training_group_id' => $trainingGroup->id,
+                'subscription_start_date' => '2026-05-17',
+                'subscription_end_date' => '2026-06-28',
+                'group_price' => '650',
+                'amount_paid' => '200',
+            ])
+            ->assertRedirect(route('swimmers.index'));
+
+        $swimmer = Swimmer::query()->firstOrFail();
+
+        $this->assertSame(1001, $swimmer->serial_number);
+        $this->assertSame(
+            '1001-عمر أحمد-2016-'.Swimmer::calculateAge(2016).'-01020030040-01020030041-مجموعة 10 صباحًا',
+            $swimmer->barcode,
+        );
+        $this->assertSame('450.00', $swimmer->remaining_amount);
+        $this->assertSame('2026-06-28', $swimmer->subscription_end_date->toDateString());
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->put(route('swimmers.update', $swimmer), [
+                'name' => 'عمر أحمد علي',
+                'birth_year' => 2015,
+                'father_phone' => '01020030042',
+                'mother_phone' => '01020030043',
+                'training_group_id' => $trainingGroup->id,
+                'subscription_start_date' => '2026-05-18',
+                'subscription_end_date' => '2026-06-29',
+                'group_price' => '700',
+                'amount_paid' => '250',
+            ])
+            ->assertRedirect(route('swimmers.index'));
+
+        $swimmer->refresh();
+
+        $this->assertSame(
+            '1001-عمر أحمد علي-2015-'.Swimmer::calculateAge(2015).'-01020030042-01020030043-مجموعة 10 صباحًا',
+            $swimmer->barcode,
+        );
+        $this->assertSame('450.00', $swimmer->remaining_amount);
+        $this->assertSame('2026-06-29', $swimmer->subscription_end_date->toDateString());
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->delete(route('swimmers.destroy', $swimmer))
+            ->assertRedirect(route('swimmers.index'));
+
+        $this->assertDatabaseMissing('swimmers', ['id' => $swimmer->id]);
+    }
+
+    public function test_manager_can_manage_swimmer_files_with_multiple_medical_reports(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب الملفات',
+            'phone' => '01000000044',
+            'password' => '123456',
+            'hourly_rate' => '155',
+            'transfer_number' => '4444',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+        $trainingGroup = TrainingGroup::query()->create([
+            'branch_id' => $branch->id,
+            'trainer_id' => $trainer->id,
+            'name' => 'مجموعة الملفات',
+            'level' => 'مدارس سباحة',
+            'training_days_per_week' => 2,
+            'available_training_days' => 8,
+            'max_swimmers' => 12,
+            'price' => '500',
+            'schedule' => [['day' => 'monday', 'time' => '11:00']],
+        ]);
+        $swimmer = Swimmer::query()->create([
+            'branch_id' => $branch->id,
+            'training_group_id' => $trainingGroup->id,
+            'serial_number' => 1001,
+            'barcode' => '1001-سباح-2015-11-010-011-مجموعة الملفات',
+            'name' => 'سباح الملفات',
+            'birth_year' => 2015,
+            'father_phone' => '01010010010',
+            'mother_phone' => '01010010011',
+            'subscription_start_date' => '2026-05-17',
+            'subscription_end_date' => '2026-06-14',
+            'group_price' => '500',
+            'amount_paid' => '100',
+            'remaining_amount' => '400',
+        ]);
+
+        $photo = UploadedFile::fake()->image('swimmer-photo.png', 1200, 1200);
+        $medicalOne = UploadedFile::fake()->image('medical-one.png', 1200, 1200);
+        $medicalTwo = UploadedFile::fake()->image('medical-two.png', 1200, 1200);
+        $replacement = UploadedFile::fake()->image('replacement.png', 1200, 1200);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('swimmers.files.store', $swimmer), [
+                'type' => SwimmerFile::TYPE_PLAYER_PHOTO,
+                'title' => 'صورة اللاعب',
+                'images' => [$photo],
+            ])
+            ->assertRedirect(route('swimmers.files.index', $swimmer));
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('swimmers.files.store', $swimmer), [
+                'type' => SwimmerFile::TYPE_MEDICAL_REPORT,
+                'title' => 'التقرير الطبي',
+                'images' => [$medicalOne, $medicalTwo],
+            ])
+            ->assertRedirect(route('swimmers.files.index', $swimmer));
+
+        $this->assertCount(3, $swimmer->swimmerFiles()->get());
+        $swimmerFile = $swimmer->swimmerFiles()->where('type', SwimmerFile::TYPE_PLAYER_PHOTO)->firstOrFail();
+        $this->assertFileExists(public_path($swimmerFile->file_path));
+
+        $oldPath = $swimmerFile->file_path;
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->put(route('swimmers.files.update', [$swimmer, $swimmerFile]), [
+                'type' => SwimmerFile::TYPE_FEDERATION_CARD,
+                'title' => 'كارنية الاتحاد',
+                'image' => $replacement,
+            ])
+            ->assertRedirect(route('swimmers.files.index', $swimmer));
+
+        $swimmerFile->refresh();
+        $this->assertSame(SwimmerFile::TYPE_FEDERATION_CARD, $swimmerFile->type);
+        $this->assertFileDoesNotExist(public_path($oldPath));
+        $this->assertFileExists(public_path($swimmerFile->file_path));
+
+        $currentPath = $swimmerFile->file_path;
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->delete(route('swimmers.files.destroy', [$swimmer, $swimmerFile]))
+            ->assertRedirect(route('swimmers.files.index', $swimmer));
+
+        $this->assertDatabaseMissing('swimmer_files', ['id' => $swimmerFile->id]);
+        $this->assertFileDoesNotExist(public_path($currentPath));
+
+        File::deleteDirectory(public_path('uploads/swimmers'));
+    }
+
+    public function test_swimmer_page_shows_only_swimmers_for_current_branch(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branchOne = Branch::query()->firstOrFail();
+        $branchTwo = Branch::query()->create(['name' => 'فرع 2']);
+        $trainerOne = Trainer::query()->create([
+            'branch_id' => $branchOne->id,
+            'name' => 'مدرب 1',
+            'phone' => '01000000045',
+            'password' => '123456',
+            'hourly_rate' => '120',
+            'transfer_number' => '5555',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+        $trainerTwo = Trainer::query()->create([
+            'branch_id' => $branchTwo->id,
+            'name' => 'مدرب 2',
+            'phone' => '01000000046',
+            'password' => '123456',
+            'hourly_rate' => '120',
+            'transfer_number' => '6666',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+        $groupOne = TrainingGroup::query()->create([
+            'branch_id' => $branchOne->id,
+            'trainer_id' => $trainerOne->id,
+            'name' => 'مجموعة الفرع الأول',
+            'level' => 'مدارس سباحة',
+            'training_days_per_week' => 2,
+            'available_training_days' => 8,
+            'max_swimmers' => 12,
+            'price' => '300',
+            'schedule' => [['day' => 'saturday', 'time' => '12:00']],
+        ]);
+        $groupTwo = TrainingGroup::query()->create([
+            'branch_id' => $branchTwo->id,
+            'trainer_id' => $trainerTwo->id,
+            'name' => 'مجموعة الفرع الثاني',
+            'level' => 'مدارس سباحة',
+            'training_days_per_week' => 2,
+            'available_training_days' => 8,
+            'max_swimmers' => 12,
+            'price' => '300',
+            'schedule' => [['day' => 'monday', 'time' => '12:00']],
+        ]);
+
+        $swimmerOne = Swimmer::query()->create([
+            'branch_id' => $branchOne->id,
+            'training_group_id' => $groupOne->id,
+            'serial_number' => 1001,
+            'barcode' => '1001-سباح الفرع الأول-2014-12-1-2-مجموعة الفرع الأول',
+            'name' => 'سباح الفرع الأول',
+            'birth_year' => 2014,
+            'father_phone' => '1',
+            'mother_phone' => '2',
+            'subscription_start_date' => '2026-05-17',
+            'subscription_end_date' => '2026-06-14',
+            'group_price' => '300',
+            'amount_paid' => '100',
+            'remaining_amount' => '200',
+        ]);
+        $swimmerTwo = Swimmer::query()->create([
+            'branch_id' => $branchTwo->id,
+            'training_group_id' => $groupTwo->id,
+            'serial_number' => 1002,
+            'barcode' => '1002-سباح الفرع الثاني-2014-12-3-4-مجموعة الفرع الثاني',
+            'name' => 'سباح الفرع الثاني',
+            'birth_year' => 2014,
+            'father_phone' => '3',
+            'mother_phone' => '4',
+            'subscription_start_date' => '2026-05-17',
+            'subscription_end_date' => '2026-06-14',
+            'group_price' => '300',
+            'amount_paid' => '100',
+            'remaining_amount' => '200',
+        ]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branchOne->id])
+            ->get(route('swimmers.index'))
+            ->assertOk()
+            ->assertSee($swimmerOne->name)
+            ->assertDontSee($swimmerTwo->name);
     }
 
     public function test_training_groups_page_shows_only_groups_for_current_branch(): void

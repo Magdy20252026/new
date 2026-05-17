@@ -7,6 +7,8 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\ThemeController;
+use App\Http\Controllers\SwimmerController;
+use App\Http\Controllers\SwimmerFileController;
 use App\Http\Controllers\TrainerAdvanceController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\TrainerFileController;
@@ -45,6 +47,10 @@ Route::middleware('auth')->group(function (): void {
         Route::post('administrator-payrolls', [AdministratorPayrollController::class, 'store'])->name('administrator-payrolls.store');
         Route::resource('branches', BranchController::class)->except(['create', 'show']);
         Route::resource('training-groups', TrainingGroupController::class)->except(['create', 'show']);
+        Route::resource('swimmers', SwimmerController::class)->except(['create', 'show']);
+        Route::resource('swimmers.files', SwimmerFileController::class)
+            ->parameters(['files' => 'swimmerFile'])
+            ->except(['create', 'show']);
         Route::resource('trainers', TrainerController::class)->except(['create', 'show']);
         Route::resource('trainers.files', TrainerFileController::class)
             ->parameters(['files' => 'trainerFile'])

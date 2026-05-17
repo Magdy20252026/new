@@ -1534,3 +1534,43 @@ html[data-theme="dark"] .alert-danger {
         width: 100%;
     }
 }
+
+
+.swimmer-form {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.swimmers-actions-row {
+    grid-column: 1 / -1;
+}
+
+.swimmer-table-card .table-action-group {
+    gap: 0.75rem;
+}
+
+.swimmer-name-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 800;
+}
+
+.swimmer-avatar-image {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    object-fit: cover;
+    background: rgba(15, 95, 215, 0.1);
+}
+
+.swimmer-barcode-cell {
+    max-width: 320px;
+    white-space: normal;
+    font-weight: 700;
+    direction: ltr;
+    text-align: right;
+}
+
+.swimmer-files-form {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
