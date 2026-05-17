@@ -33,26 +33,18 @@ class AdministratorController extends Controller
         return redirect()->route('administrators.index')->with('status', 'تم إضافة الإداري');
     }
 
-    public function edit(Request $request, string $administrator)
+    public function edit(Request $request, Administrator $administrator)
     {
-        if ($setupError = $this->administratorsSetupError()) {
-            return redirect()->route('administrators.index')->withErrors(['name' => $setupError]);
-        }
-
-        $administrator = $this->resolveAdministrator($request, $administrator);
+        $administrator = $this->scopedAdministratorsQuery($request)->findOrFail($administrator->id);
 
         return $this->administratorsView($request, $administrator);
     }
 
-    public function update(Request $request, string $administrator): RedirectResponse
+    public function update(Request $request, Administrator $administrator): RedirectResponse
     {
-        if ($setupError = $this->administratorsSetupError()) {
-            return redirect()->route('administrators.index')->withErrors(['name' => $setupError]);
-        }
-
         $currentBranch = ControlPanel::currentBranch($request->user());
         abort_unless($currentBranch, 403);
-        $administrator = $this->resolveAdministrator($request, $administrator);
+        $administrator = $this->scopedAdministratorsQuery($request)->findOrFail($administrator->id);
         $data = $this->validatedPayload($request, $currentBranch, $administrator);
 
         $administrator->update($data);
@@ -60,13 +52,9 @@ class AdministratorController extends Controller
         return redirect()->route('administrators.index')->with('status', 'تم تحديث الإداري');
     }
 
-    public function destroy(Request $request, string $administrator): RedirectResponse
+    public function destroy(Request $request, Administrator $administrator): RedirectResponse
     {
-        if ($setupError = $this->administratorsSetupError()) {
-            return redirect()->route('administrators.index')->withErrors(['name' => $setupError]);
-        }
-
-        $administrator = $this->resolveAdministrator($request, $administrator);
+        $administrator = $this->scopedAdministratorsQuery($request)->findOrFail($administrator->id);
         $administrator->delete();
 
         return redirect()->route('administrators.index')->with('status', 'تم حذف الإداري');
@@ -111,11 +99,6 @@ class AdministratorController extends Controller
             'salary.required' => 'الراتب مطلوب',
             'salary.numeric' => 'الراتب غير صحيح',
         ]) + ['branch_id' => $branch->id];
-    }
-
-    protected function resolveAdministrator(Request $request, string $administrator): Administrator
-    {
-        return $this->scopedAdministratorsQuery($request)->findOrFail($administrator);
     }
 
     protected function administratorsSetupError(): ?string
