@@ -1178,9 +1178,17 @@ html[data-theme="dark"] .alert-danger {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.administrator-payrolls-stats {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
 .trainer-payrolls-panel {
     display: grid;
     gap: 1rem;
+}
+
+.administrator-payrolls-panel {
+    gap: 1.25rem;
 }
 
 .trainer-payrolls-filter-form {
@@ -1191,10 +1199,18 @@ html[data-theme="dark"] .alert-danger {
     font-weight: 800;
 }
 
+.administrator-payroll-select {
+    min-height: 54px;
+}
+
 .trainer-payrolls-summary-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1rem;
+}
+
+.administrator-payrolls-summary-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .trainer-payroll-summary-card {
@@ -1202,6 +1218,45 @@ html[data-theme="dark"] .alert-danger {
     border-radius: 22px;
     border: 1px solid var(--line);
     background: rgba(15, 95, 215, 0.05);
+}
+
+.administrator-payroll-profile-card {
+    display: grid;
+    gap: 1rem;
+    padding: 1.2rem;
+    border-radius: 26px;
+    border: 1px solid var(--line);
+    background: linear-gradient(135deg, rgba(15, 95, 215, 0.08), rgba(6, 182, 212, 0.08));
+}
+
+.administrator-payroll-profile-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.administrator-payroll-avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 1.35rem;
+}
+
+.administrator-payroll-profile-name {
+    min-height: 1.8rem;
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: var(--text-main);
+}
+
+.administrator-payroll-profile-role {
+    min-height: 1.6rem;
+    color: var(--text-soft);
+    font-weight: 800;
+}
+
+.administrator-payroll-salary-card {
+    background: rgba(15, 95, 215, 0.12);
+    border-color: rgba(15, 95, 215, 0.18);
 }
 
 .trainer-payroll-summary-label {

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Administrator;
+use App\Models\AdministratorPayroll;
 use App\Models\AppSetting;
 use App\Models\Branch;
 use App\Models\Trainer;
@@ -387,8 +388,10 @@ class ControlPanelTest extends TestCase
             ->assertSee(route('trainer-hours.index'))
             ->assertSee(route('trainer-advances.index'))
             ->assertSee(route('trainer-payrolls.index'))
+            ->assertSee(route('administrator-payrolls.index'))
             ->assertSee(route('trainer-payment-week.edit'))
             ->assertSee('قبض المدربين')
+            ->assertSee('قبض الإداريين')
             ->assertSee('الإداريين')
             ->assertSee('بداية أسبوع قبض المدربين')
             ->assertSee(route('trainers.index'))
@@ -998,5 +1001,143 @@ class ControlPanelTest extends TestCase
             ])
             ->assertRedirect(route('trainer-payrolls.index'))
             ->assertSessionHasErrors(['trainer_id']);
+    }
+
+    public function test_manager_can_pay_administrator_salary_and_see_it_in_table(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+        $administrator = Administrator::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'إداري الرواتب',
+            'phone' => '01000000400',
+            'job_title' => 'مدير إداري',
+            'salary' => '5200',
+        ]);
+
+        $this->travelTo('2026-05-17 12:00:00');
+
+        try {
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->get(route('administrator-payrolls.index', ['administrator_id' => $administrator->id]))
+                ->assertOk()
+                ->assertSee('قبض الإداريين')
+                ->assertSee($administrator->name)
+                ->assertSee($administrator->phone)
+                ->assertSee('5200');
+
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->post(route('administrator-payrolls.store'), [
+                    'administrator_id' => $administrator->id,
+                ])
+                ->assertRedirect(route('administrator-payrolls.index'));
+
+            $administratorPayroll = AdministratorPayroll::query()
+                ->where('branch_id', $branch->id)
+                ->where('administrator_id', $administrator->id)
+                ->firstOrFail();
+
+            $this->assertSame('2026-05-01', $administratorPayroll->period_start->toDateString());
+            $this->assertSame('2026-05-31', $administratorPayroll->period_end->toDateString());
+            $this->assertSame('5200.00', $administratorPayroll->amount);
+
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->get(route('administrator-payrolls.index'))
+                ->assertOk()
+                ->assertSee('جدول رواتب الإداريين')
+                ->assertSee($administrator->name)
+                ->assertSee('2026-05')
+                ->assertSee('2026-05-17');
+        } finally {
+            $this->travelBack();
+        }
+    }
+
+    public function test_paid_administrator_is_hidden_for_current_month_and_returns_next_month(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+        $administrator = Administrator::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'إداري شهري',
+            'phone' => '01000000401',
+            'job_title' => 'محاسب',
+            'salary' => '4800',
+        ]);
+
+        $this->travelTo('2026-05-17 12:00:00');
+
+        try {
+            AdministratorPayroll::query()->create([
+                'branch_id' => $branch->id,
+                'administrator_id' => $administrator->id,
+                'period_start' => '2026-05-01',
+                'period_end' => '2026-05-31',
+                'amount' => '4800',
+                'paid_at' => '2026-05-17 12:00:00',
+            ]);
+
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->get(route('administrator-payrolls.index'))
+                ->assertOk()
+                ->assertDontSee('value="'.$administrator->id.'"', false);
+
+            $this->travelTo('2026-06-01 12:00:00');
+
+            $this->actingAs($manager)
+                ->withSession(['current_branch_id' => $branch->id])
+                ->get(route('administrator-payrolls.index'))
+                ->assertOk()
+                ->assertSee('value="'.$administrator->id.'"', false)
+                ->assertSee($administrator->name);
+        } finally {
+            $this->travelBack();
+        }
+    }
+
+    public function test_administrator_payroll_page_loads_when_table_is_missing(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        Schema::dropIfExists('administrator_payrolls');
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('administrator-payrolls.index'))
+            ->assertOk()
+            ->assertSee('جدول قبض الإداريين غير مهيأ بعد');
+    }
+
+    public function test_administrator_payroll_store_does_not_crash_when_table_is_missing(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+        $administrator = Administrator::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'إداري تجريبي',
+            'phone' => '01000000402',
+            'job_title' => 'سكرتير',
+            'salary' => '4100',
+        ]);
+
+        Schema::dropIfExists('administrator_payrolls');
+
+        $this->from(route('administrator-payrolls.index'))
+            ->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('administrator-payrolls.store'), [
+                'administrator_id' => $administrator->id,
+            ])
+            ->assertRedirect(route('administrator-payrolls.index'))
+            ->assertSessionHasErrors(['administrator_id']);
     }
 }

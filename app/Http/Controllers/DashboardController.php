@@ -34,6 +34,11 @@ class DashboardController extends Controller
                     'icon' => 'bi-cash-stack',
                     'route' => route('trainer-payrolls.index'),
                 ],
+                [
+                    'title' => 'قبض الإداريين',
+                    'icon' => 'bi-credit-card-2-front-fill',
+                    'route' => route('administrator-payrolls.index'),
+                ],
             ]
             : [];
 
