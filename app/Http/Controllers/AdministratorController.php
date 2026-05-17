@@ -68,7 +68,7 @@ class AdministratorController extends Controller
             'pageTitle' => 'الإداريين',
             'setupError' => $setupError,
             'administrators' => $setupError ? collect() : $this->scopedAdministratorsQuery($request)->get(),
-            'editedAdministrator' => $setupError ? null : $editedAdministrator,
+            'editedAdministrator' => $editedAdministrator,
         ], 'administrators');
     }
 

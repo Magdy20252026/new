@@ -1,6 +1,6 @@
 @php
     $formatNumber = static fn ($value) => rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.');
-    $administratorTableColumnCount = 5;
+    $administratorTableHeaders = ['اسم الإداري', 'رقم الهاتف', 'الوظيفة', 'الراتب', 'الإجراءات'];
 @endphp
 
 @extends('layouts.dashboard')
@@ -88,11 +88,9 @@
                 <table class="table align-middle app-table">
                     <thead>
                         <tr>
-                            <th>اسم الإداري</th>
-                            <th>رقم الهاتف</th>
-                            <th>الوظيفة</th>
-                            <th>الراتب</th>
-                            <th class="table-actions">الإجراءات</th>
+                            @foreach($administratorTableHeaders as $header)
+                                <th @class(['table-actions' => $header === 'الإجراءات'])>{{ $header }}</th>
+                            @endforeach
                         </tr>
                     </thead>
                     <tbody>
@@ -120,7 +118,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $administratorTableColumnCount }}" class="text-center text-muted py-4">
+                                <td colspan="{{ count($administratorTableHeaders) }}" class="text-center text-muted py-4">
                                     {{ $setupError ?: 'لا يوجد إداريون مضافون حالياً.' }}
                                 </td>
                             </tr>
