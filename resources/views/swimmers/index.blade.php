@@ -179,6 +179,7 @@
                         name="subscription_end_date"
                         class="form-control"
                         value="{{ old('subscription_end_date', optional($editedSwimmer?->subscription_end_date)->toDateString()) }}"
+                        readonly
                         data-swimmer-end-date
                     >
                 </div>

@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function (): void {
         Route::resource('training-groups', TrainingGroupController::class)->except(['create', 'show']);
         Route::resource('swimmers', SwimmerController::class)->except(['create', 'show']);
         Route::resource('swimmers.files', SwimmerFileController::class)
-            ->parameters(['files' => 'trainerFile'])
+            ->parameters(['files' => 'swimmerFile'])
             ->except(['create', 'show']);
         Route::resource('trainers', TrainerController::class)->except(['create', 'show']);
         Route::resource('trainers.files', TrainerFileController::class)

@@ -403,8 +403,12 @@ class ControlPanelTest extends TestCase
         $swimmer = Swimmer::query()->firstOrFail();
 
         $this->assertSame(1001, $swimmer->serial_number);
-        $this->assertSame('1001-عمر أحمد-2016-10-01020030040-01020030041-مجموعة 10 صباحًا', $swimmer->barcode);
+        $this->assertSame(
+            '1001-عمر أحمد-2016-'.Swimmer::calculateAge(2016).'-01020030040-01020030041-مجموعة 10 صباحًا',
+            $swimmer->barcode,
+        );
         $this->assertSame('450.00', $swimmer->remaining_amount);
+        $this->assertSame('2026-06-28', $swimmer->subscription_end_date->toDateString());
 
         $this->actingAs($manager)
             ->withSession(['current_branch_id' => $branch->id])
@@ -423,8 +427,12 @@ class ControlPanelTest extends TestCase
 
         $swimmer->refresh();
 
-        $this->assertSame('1001-عمر أحمد علي-2015-11-01020030042-01020030043-مجموعة 10 صباحًا', $swimmer->barcode);
+        $this->assertSame(
+            '1001-عمر أحمد علي-2015-'.Swimmer::calculateAge(2015).'-01020030042-01020030043-مجموعة 10 صباحًا',
+            $swimmer->barcode,
+        );
         $this->assertSame('450.00', $swimmer->remaining_amount);
+        $this->assertSame('2026-06-29', $swimmer->subscription_end_date->toDateString());
 
         $this->actingAs($manager)
             ->withSession(['current_branch_id' => $branch->id])

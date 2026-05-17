@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class SwimmerFileController extends Controller
 {
@@ -41,18 +42,18 @@ class SwimmerFileController extends Controller
             ->with('status', 'تم رفع ملفات السباح');
     }
 
-    public function edit(Request $request, Swimmer $swimmer, SwimmerFile $trainerFile)
+    public function edit(Request $request, Swimmer $swimmer, SwimmerFile $swimmerFile)
     {
         $swimmer = $this->scopedSwimmer($request, $swimmer);
-        $swimmerFile = $this->scopedSwimmerFile($swimmer, $trainerFile);
+        $swimmerFile = $this->scopedSwimmerFile($swimmer, $swimmerFile);
 
         return $this->swimmerFilesView($request, $swimmer, $swimmerFile);
     }
 
-    public function update(Request $request, Swimmer $swimmer, SwimmerFile $trainerFile): RedirectResponse
+    public function update(Request $request, Swimmer $swimmer, SwimmerFile $swimmerFile): RedirectResponse
     {
         $swimmer = $this->scopedSwimmer($request, $swimmer);
-        $swimmerFile = $this->scopedSwimmerFile($swimmer, $trainerFile);
+        $swimmerFile = $this->scopedSwimmerFile($swimmer, $swimmerFile);
         $data = $this->validatedUpdatePayload($request);
 
         $payload = [
@@ -71,10 +72,10 @@ class SwimmerFileController extends Controller
             ->with('status', 'تم تحديث ملف السباح');
     }
 
-    public function destroy(Request $request, Swimmer $swimmer, SwimmerFile $trainerFile): RedirectResponse
+    public function destroy(Request $request, Swimmer $swimmer, SwimmerFile $swimmerFile): RedirectResponse
     {
         $swimmer = $this->scopedSwimmer($request, $swimmer);
-        $swimmerFile = $this->scopedSwimmerFile($swimmer, $trainerFile);
+        $swimmerFile = $this->scopedSwimmerFile($swimmer, $swimmerFile);
         $swimmerFile->delete();
 
         return redirect()
@@ -130,7 +131,9 @@ class SwimmerFileController extends Controller
         ]);
 
         if ($validated['type'] !== SwimmerFile::TYPE_MEDICAL_REPORT && count($validated['images']) > 1) {
-            return back()->withErrors(['images' => 'يمكن رفع أكثر من صورة فقط للتقرير الطبي.'])->withInput()->throwResponse();
+            throw ValidationException::withMessages([
+                'images' => 'يمكن رفع أكثر من صورة فقط للتقرير الطبي.',
+            ]);
         }
 
         return $validated;

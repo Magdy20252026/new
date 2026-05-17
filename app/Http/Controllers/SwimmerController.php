@@ -112,7 +112,6 @@ class SwimmerController extends Controller
                 Rule::exists('training_groups', 'id')->where(fn ($query) => $query->where('branch_id', $branch->id)),
             ],
             'subscription_start_date' => ['required', 'date'],
-            'subscription_end_date' => ['required', 'date', 'after_or_equal:subscription_start_date'],
             'group_price' => ['required', 'numeric', 'min:0'],
             'amount_paid' => ['required', 'numeric', 'min:0'],
         ], [
@@ -126,8 +125,6 @@ class SwimmerController extends Controller
             'training_group_id.required' => 'المجموعة مطلوبة',
             'training_group_id.exists' => 'المجموعة غير متاحة في الفرع الحالي',
             'subscription_start_date.required' => 'تاريخ بداية الاشتراك مطلوب',
-            'subscription_end_date.required' => 'تاريخ نهاية الاشتراك مطلوب',
-            'subscription_end_date.after_or_equal' => 'تاريخ نهاية الاشتراك يجب أن يكون بعد تاريخ البداية أو مساويًا له',
             'group_price.required' => 'سعر المجموعة مطلوب',
             'group_price.numeric' => 'سعر المجموعة غير صحيح',
             'amount_paid.required' => 'المبلغ المدفوع مطلوب',
@@ -153,6 +150,7 @@ class SwimmerController extends Controller
                 $validated['mother_phone'],
                 $trainingGroup->name,
             ),
+            'subscription_end_date' => Swimmer::calculateSubscriptionEndDate($validated['subscription_start_date'], $trainingGroup),
             'remaining_amount' => $remainingAmount,
         ];
     }
