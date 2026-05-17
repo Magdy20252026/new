@@ -728,4 +728,46 @@ class ControlPanelTest extends TestCase
             ->assertRedirect(route('login'))
             ->assertSessionHasErrors(['username']);
     }
+
+    public function test_trainer_payroll_page_loads_when_payrolls_table_is_missing(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+
+        Schema::dropIfExists('trainer_payrolls');
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('trainer-payrolls.index'))
+            ->assertOk()
+            ->assertSee('جدول قبض المدربين غير مهيأ بعد');
+    }
+
+    public function test_trainer_payroll_store_does_not_crash_when_payrolls_table_is_missing(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب تجريبي',
+            'phone' => '01000000099',
+            'password' => '123456',
+            'hourly_rate' => '100',
+            'transfer_number' => '999',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+
+        Schema::dropIfExists('trainer_payrolls');
+
+        $this->from(route('trainer-payrolls.index'))
+            ->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('trainer-payrolls.store'), [
+                'trainer_id' => $trainer->id,
+            ])
+            ->assertRedirect(route('trainer-payrolls.index'))
+            ->assertSessionHasErrors(['trainer_id']);
+    }
 }
