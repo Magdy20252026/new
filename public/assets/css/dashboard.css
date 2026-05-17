@@ -674,6 +674,10 @@ html[data-theme="dark"] .icon-dark {
     gap: 1rem 1.1rem;
 }
 
+.administrator-form {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
 .branch-inline-form {
     grid-template-columns: minmax(0, 1fr) auto;
 }
@@ -683,6 +687,7 @@ html[data-theme="dark"] .icon-dark {
 }
 
 .top-form-grid .branch-scope-block,
+.administrator-form .trainer-form-actions,
 .trainer-form .trainer-form-actions,
 .trainer-files-form .trainer-file-preview-card,
 .trainer-files-form .trainer-form-actions,
@@ -987,6 +992,30 @@ html[data-theme="dark"] .alert-danger {
 }
 
 .trainer-rate-cell {
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.administrator-name-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    font-weight: 800;
+}
+
+.administrator-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 95, 215, 0.1);
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+.administrator-salary-cell {
     font-weight: 900;
     white-space: nowrap;
 }

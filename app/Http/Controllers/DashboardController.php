@@ -25,6 +25,11 @@ class DashboardController extends Controller
         $quickActions = $user->isManager()
             ? [
                 [
+                    'title' => 'الإداريين',
+                    'icon' => 'bi-people',
+                    'route' => route('administrators.index'),
+                ],
+                [
                     'title' => 'قبض المدربين',
                     'icon' => 'bi-cash-stack',
                     'route' => route('trainer-payrolls.index'),

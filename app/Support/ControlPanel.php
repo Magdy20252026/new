@@ -169,7 +169,7 @@ class ControlPanel
                 $user->isManager() ? route('trainer-payment-week.edit') : null,
                 $active === 'trainer-payment-week',
             ),
-            static::menuItem('الإداريين', 'bi-people'),
+            static::menuItem('الإداريين', 'bi-people', $user->isManager() ? route('administrators.index') : null, $active === 'administrators'),
             static::menuItem('قبض الإداريين', 'bi-credit-card-2-front-fill'),
             static::menuItem('الأصناف', 'bi-box-seam-fill'),
             static::menuItem('المبيعات', 'bi-cart-check-fill'),
