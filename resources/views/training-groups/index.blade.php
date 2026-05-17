@@ -95,14 +95,13 @@
                 </div>
 
                 <div>
-                    <label class="form-label" for="training_group_available_days">عدد أيام التمارين المتاحة للمجموعة</label>
+                    <label class="form-label" for="training_group_available_days">عدد مرات التمرين المتاحة للمجموعة</label>
                     <input
                         type="number"
                         id="training_group_available_days"
                         name="available_training_days"
                         class="form-control"
                         min="1"
-                        max="7"
                         value="{{ old('available_training_days', $editedTrainingGroup?->available_training_days) }}"
                     >
                 </div>
@@ -160,7 +159,7 @@
                                 <th>المدرب</th>
                                 <th>مواعيد التمرين</th>
                                 <th>أيام التمرين</th>
-                                <th>الأيام المتاحة</th>
+                                <th>مرات التمرين المتاحة</th>
                                 <th>أقصى عدد</th>
                                 <th>السعر</th>
                                 <th class="table-actions">الإجراءات</th>
