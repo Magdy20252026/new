@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\Trainer;
+use App\Models\TrainerAdvance;
 use App\Models\TrainerHour;
 use App\Models\TrainerPayroll;
 use App\Support\ControlPanel;
@@ -88,7 +89,7 @@ class TrainerPayrollController extends Controller
         $trainer = $this->validatedTrainer($request, $branch);
         $summary = $this->selectedTrainerSummary($trainer, $currentPeriod);
 
-        if ($summary['total_amount'] <= 0 || $summary['has_current_payroll']) {
+        if ($summary['net_amount'] <= 0 || $summary['has_current_payroll']) {
             return redirect()
                 ->route('trainer-payrolls.index', ['trainer_id' => $trainer->id])
                 ->withErrors(['trainer_id' => 'لا يوجد راتب متاح للصرف']);
@@ -102,6 +103,8 @@ class TrainerPayrollController extends Controller
             'hours' => $summary['hours'],
             'hourly_rate' => $summary['hourly_rate'],
             'total_amount' => $summary['total_amount'],
+            'advance_amount' => $summary['advance_amount'],
+            'net_amount' => $summary['net_amount'],
             'status' => TrainerPayroll::STATUS_PAID,
             'paid_at' => now(),
         ]);
@@ -193,9 +196,11 @@ class TrainerPayrollController extends Controller
 
         if ($currentPayroll) {
             return [
-                'hours' => 0,
-                'hourly_rate' => (float) $trainer->hourly_rate,
-                'total_amount' => 0,
+                'hours' => (float) $currentPayroll->hours,
+                'hourly_rate' => (float) $currentPayroll->hourly_rate,
+                'total_amount' => (float) $currentPayroll->total_amount,
+                'advance_amount' => (float) $currentPayroll->advance_amount,
+                'net_amount' => (float) $currentPayroll->net_amount,
                 'has_current_payroll' => true,
             ];
         }
@@ -206,12 +211,21 @@ class TrainerPayrollController extends Controller
                 $currentPeriod['end']->toDateString(),
             ])
             ->sum('hours');
+        $advanceAmount = (float) $trainer->trainerAdvances()
+            ->whereBetween('advanced_on', [
+                $currentPeriod['start']->toDateString(),
+                $currentPeriod['end']->toDateString(),
+            ])
+            ->sum('amount');
         $hourlyRate = (float) $trainer->hourly_rate;
+        $totalAmount = $hours * $hourlyRate;
 
         return [
             'hours' => $hours,
             'hourly_rate' => $hourlyRate,
-            'total_amount' => $hours * $hourlyRate,
+            'total_amount' => $totalAmount,
+            'advance_amount' => $advanceAmount,
+            'net_amount' => $totalAmount - $advanceAmount,
             'has_current_payroll' => false,
         ];
     }
@@ -222,6 +236,8 @@ class TrainerPayrollController extends Controller
             'hours' => 0,
             'hourly_rate' => 0,
             'total_amount' => 0,
+            'advance_amount' => 0,
+            'net_amount' => 0,
             'has_current_payroll' => false,
         ];
     }
@@ -231,13 +247,20 @@ class TrainerPayrollController extends Controller
         $earliestWorkedOn = TrainerHour::query()
             ->whereHas('trainer', fn ($builder) => $builder->where('branch_id', $branch->id))
             ->min('worked_on');
+        $earliestAdvancedOn = TrainerAdvance::query()
+            ->whereHas('trainer', fn ($builder) => $builder->where('branch_id', $branch->id))
+            ->min('advanced_on');
+        $earliestActivity = collect([$earliestWorkedOn, $earliestAdvancedOn])
+            ->filter()
+            ->sort()
+            ->first();
 
-        if (! $earliestWorkedOn) {
+        if (! $earliestActivity) {
             return;
         }
 
         $cursor = TrainerPayrollCycle::periodStartForReference(
-            CarbonImmutable::parse($earliestWorkedOn),
+            CarbonImmutable::parse($earliestActivity),
             $paymentWeek,
         );
 
@@ -263,11 +286,15 @@ class TrainerPayrollController extends Controller
             ->withSum([
                 'trainerHours as period_hours' => fn ($builder) => $builder->whereBetween('worked_on', [$startDate, $endDate]),
             ], 'hours')
+            ->withSum([
+                'trainerAdvances as period_advances' => fn ($builder) => $builder->whereBetween('advanced_on', [$startDate, $endDate]),
+            ], 'amount')
             ->get()
             ->each(function (Trainer $trainer) use ($branch, $startDate, $endDate): void {
                 $hours = (float) ($trainer->period_hours ?? 0);
+                $advanceAmount = (float) ($trainer->period_advances ?? 0);
 
-                if ($hours <= 0) {
+                if ($hours <= 0 && $advanceAmount <= 0) {
                     return;
                 }
 
@@ -282,6 +309,7 @@ class TrainerPayrollController extends Controller
                 }
 
                 $hourlyRate = (float) $trainer->hourly_rate;
+                $totalAmount = $hours * $hourlyRate;
 
                 TrainerPayroll::query()->create([
                     'branch_id' => $branch->id,
@@ -290,7 +318,9 @@ class TrainerPayrollController extends Controller
                     'period_end' => $endDate,
                     'hours' => $hours,
                     'hourly_rate' => $hourlyRate,
-                    'total_amount' => $hours * $hourlyRate,
+                    'total_amount' => $totalAmount,
+                    'advance_amount' => $advanceAmount,
+                    'net_amount' => $totalAmount - $advanceAmount,
                     'status' => TrainerPayroll::STATUS_HELD,
                     'held_at' => now(),
                 ]);
