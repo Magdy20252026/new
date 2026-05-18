@@ -116,7 +116,7 @@ class SwimmerController extends Controller
             'subscription_start_date' => ['required', 'date'],
             'group_price' => ['required', 'numeric', 'min:0'],
             'amount_paid' => ['required', 'numeric', 'min:0'],
-            'exclude_from_financial_totals' => ['nullable', 'boolean'],
+            'excluded_from_financial_totals' => ['nullable', 'boolean'],
         ], [
             'name.required' => 'اسم السباح مطلوب',
             'birth_year.required' => 'سنة الميلاد مطلوبة',
@@ -148,7 +148,7 @@ class SwimmerController extends Controller
             'barcode' => Swimmer::generateBarcode($serialNumber),
             'subscription_end_date' => Swimmer::calculateSubscriptionEndDate($validated['subscription_start_date'], $trainingGroup),
             'remaining_amount' => $remainingAmount,
-            'exclude_from_financial_totals' => $request->boolean('exclude_from_financial_totals'),
+            'excluded_from_financial_totals' => $request->boolean('excluded_from_financial_totals'),
         ];
     }
 }

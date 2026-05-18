@@ -7,8 +7,8 @@
     $initialBirthYear = (int) old('birth_year', $editedSwimmer?->birth_year ?? $currentYear);
     $initialPaid = old('amount_paid', $editedSwimmer?->amount_paid ?? 0);
     $initialPrice = old('group_price', $editedSwimmer?->group_price ?? $selectedGroup?->price ?? 0);
-    $excludeFromFinancialTotals = old('exclude_from_financial_totals', $editedSwimmer?->exclude_from_financial_totals ?? false);
-    $countedSwimmers = $swimmers->reject(fn ($swimmer) => $swimmer->exclude_from_financial_totals);
+    $excludedFromFinancialTotals = old('excluded_from_financial_totals', $editedSwimmer?->excluded_from_financial_totals ?? false);
+    $countedSwimmers = $swimmers->reject(fn ($swimmer) => $swimmer->excluded_from_financial_totals);
     $showForm = $showCreateForm || $editedSwimmer !== null;
     $trainingGroupDataset = $trainingGroups->map(fn ($group) => [
         'id' => $group->id,
@@ -224,18 +224,18 @@
                     <div class="form-check">
                         <input
                             type="hidden"
-                            name="exclude_from_financial_totals"
+                            name="excluded_from_financial_totals"
                             value="0"
                         >
                         <input
                             type="checkbox"
-                            id="swimmer_exclude_from_financial_totals"
-                            name="exclude_from_financial_totals"
+                            id="swimmer_excluded_from_financial_totals"
+                            name="excluded_from_financial_totals"
                             class="form-check-input"
                             value="1"
-                            @checked((bool) $excludeFromFinancialTotals)
+                            @checked((bool) $excludedFromFinancialTotals)
                         >
-                        <label class="form-check-label" for="swimmer_exclude_from_financial_totals">
+                        <label class="form-check-label" for="swimmer_excluded_from_financial_totals">
                             غير محسوب
                         </label>
                         <div class="form-help-text">فعّلها إذا كان هذا الاشتراك مدفوعًا من قبل ولا يجب دخوله في الإجماليات.</div>
@@ -297,7 +297,7 @@
                                     <td>{{ optional($swimmer->subscription_start_date)->format('Y-m-d') }}</td>
                                     <td>{{ optional($swimmer->subscription_end_date)->format('Y-m-d') }}</td>
                                     <td>
-                                        @if($swimmer->exclude_from_financial_totals)
+                                        @if($swimmer->excluded_from_financial_totals)
                                             <span class="badge text-bg-warning">غير محسوب</span>
                                         @else
                                             <span class="badge text-bg-success">محسوب</span>

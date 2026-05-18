@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\File;
     'group_price',
     'amount_paid',
     'remaining_amount',
-    'exclude_from_financial_totals',
+    'excluded_from_financial_totals',
 ])]
 class Swimmer extends Model
 {
@@ -100,7 +100,7 @@ class Swimmer extends Model
             'remaining_amount' => 'decimal:2',
             'serial_number' => 'integer',
             'birth_year' => 'integer',
-            'exclude_from_financial_totals' => 'boolean',
+            'excluded_from_financial_totals' => 'boolean',
         ];
     }
 }

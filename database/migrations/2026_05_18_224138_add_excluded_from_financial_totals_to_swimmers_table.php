@@ -9,14 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('swimmers', function (Blueprint $table) {
-            $table->boolean('exclude_from_financial_totals')->default(false)->after('remaining_amount');
+            $table->boolean('excluded_from_financial_totals')->default(false)->after('remaining_amount');
         });
     }
 
     public function down(): void
     {
         Schema::table('swimmers', function (Blueprint $table) {
-            $table->dropColumn('exclude_from_financial_totals');
+            $table->dropColumn('excluded_from_financial_totals');
         });
     }
 };

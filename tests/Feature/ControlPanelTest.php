@@ -396,7 +396,7 @@ class ControlPanelTest extends TestCase
                 'subscription_end_date' => '2026-06-28',
                 'group_price' => '650',
                 'amount_paid' => '200',
-                'exclude_from_financial_totals' => '0',
+                'excluded_from_financial_totals' => '0',
             ])
             ->assertRedirect(route('swimmers.index'));
 
@@ -404,7 +404,7 @@ class ControlPanelTest extends TestCase
 
         $this->assertSame(1001, $swimmer->serial_number);
         $this->assertSame('1001', $swimmer->barcode);
-        $this->assertFalse($swimmer->exclude_from_financial_totals);
+        $this->assertFalse($swimmer->excluded_from_financial_totals);
         $this->assertSame('450.00', $swimmer->remaining_amount);
         $this->assertSame('2026-06-28', $swimmer->subscription_end_date->toDateString());
 
@@ -420,14 +420,14 @@ class ControlPanelTest extends TestCase
                 'subscription_end_date' => '2026-06-29',
                 'group_price' => '700',
                 'amount_paid' => '250',
-                'exclude_from_financial_totals' => '1',
+                'excluded_from_financial_totals' => '1',
             ])
             ->assertRedirect(route('swimmers.index'));
 
         $swimmer->refresh();
 
         $this->assertSame('1001', $swimmer->barcode);
-        $this->assertTrue($swimmer->exclude_from_financial_totals);
+        $this->assertTrue($swimmer->excluded_from_financial_totals);
         $this->assertSame('450.00', $swimmer->remaining_amount);
         $this->assertSame('2026-06-29', $swimmer->subscription_end_date->toDateString());
 
@@ -662,7 +662,7 @@ class ControlPanelTest extends TestCase
             'group_price' => '500',
             'amount_paid' => '50',
             'remaining_amount' => '450',
-            'exclude_from_financial_totals' => false,
+            'excluded_from_financial_totals' => false,
         ]);
 
         Swimmer::query()->create([
@@ -679,7 +679,7 @@ class ControlPanelTest extends TestCase
             'group_price' => '500',
             'amount_paid' => '120',
             'remaining_amount' => '380',
-            'exclude_from_financial_totals' => true,
+            'excluded_from_financial_totals' => true,
         ]);
 
         $this->actingAs($manager)
