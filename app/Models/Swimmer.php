@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 
 #[Fillable([
     'branch_id',
@@ -49,6 +50,11 @@ class Swimmer extends Model
     public static function generateBarcode(int $serialNumber): string
     {
         return (string) $serialNumber;
+    }
+
+    public static function supportsFinancialExclusion(): bool
+    {
+        return Schema::hasColumn((new static)->getTable(), 'excluded_from_financial_totals');
     }
 
     public function branch(): BelongsTo
