@@ -160,11 +160,8 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('[data-swimmer-form]').forEach(function (form) {
         const trainingGroups = JSON.parse(form.dataset.trainingGroups || '[]');
         const serialNumber = Number(form.dataset.nextSerialNumber || 1001);
-        const nameInput = form.querySelector('[data-swimmer-name]');
         const birthYearInput = form.querySelector('[data-swimmer-birth-year]');
         const ageInput = form.querySelector('[data-swimmer-age]');
-        const fatherPhoneInput = form.querySelector('[data-swimmer-father-phone]');
-        const motherPhoneInput = form.querySelector('[data-swimmer-mother-phone]');
         const groupSelect = form.querySelector('[data-swimmer-group]');
         const barcodeInput = form.querySelector('[data-swimmer-barcode]');
         const startDateInput = form.querySelector('[data-swimmer-start-date]');
@@ -173,13 +170,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const paidInput = form.querySelector('[data-swimmer-paid]');
         const remainingInput = form.querySelector('[data-swimmer-remaining]');
 
-        if (!nameInput || !birthYearInput || !ageInput || !fatherPhoneInput || !motherPhoneInput || !groupSelect || !barcodeInput || !startDateInput || !endDateInput || !priceInput || !paidInput || !remainingInput) {
+        if (!birthYearInput || !ageInput || !groupSelect || !barcodeInput || !startDateInput || !endDateInput || !priceInput || !paidInput || !remainingInput) {
             return;
         }
-
-        const normalizeSegment = function (value) {
-            return String(value || '').replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
-        };
 
         const selectedGroup = function () {
             return trainingGroups.find(function (group) {
@@ -226,21 +219,8 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const syncBarcode = function () {
-            const age = syncAge();
-            const groupName = selectedGroup()?.name || '';
-            const segments = [
-                serialNumber,
-                normalizeSegment(nameInput.value),
-                normalizeSegment(birthYearInput.value),
-                age,
-                normalizeSegment(fatherPhoneInput.value),
-                normalizeSegment(motherPhoneInput.value),
-                normalizeSegment(groupName),
-            ].filter(function (segment) {
-                return String(segment).length > 0;
-            });
-
-            barcodeInput.value = segments.join('-');
+            syncAge();
+            barcodeInput.value = String(serialNumber);
         };
 
         const syncPriceFromGroup = function () {
@@ -262,12 +242,9 @@ document.addEventListener('DOMContentLoaded', function () {
             syncPriceFromGroup();
             syncEndDate();
             syncRemaining();
-            syncBarcode();
         });
 
-        [nameInput, birthYearInput, fatherPhoneInput, motherPhoneInput].forEach(function (input) {
-            input.addEventListener('input', syncBarcode);
-        });
+        birthYearInput.addEventListener('input', syncBarcode);
         startDateInput.addEventListener('change', syncEndDate);
         priceInput.addEventListener('input', function () {
             syncRemaining();

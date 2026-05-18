@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\File;
     'group_price',
     'amount_paid',
     'remaining_amount',
+    'excluded_from_financial_totals',
 ])]
 class Swimmer extends Model
 {
@@ -45,25 +46,9 @@ class Swimmer extends Model
         return Carbon::parse($startDate)->addWeeks(max(1, $weeks))->toDateString();
     }
 
-    public static function generateBarcode(
-        int $serialNumber,
-        string $name,
-        int $birthYear,
-        string $fatherPhone,
-        string $motherPhone,
-        string $groupName,
-    ): string {
-        $segments = [
-            $serialNumber,
-            static::sanitizeBarcodeSegment($name),
-            $birthYear,
-            static::calculateAge($birthYear),
-            static::sanitizeBarcodeSegment($fatherPhone),
-            static::sanitizeBarcodeSegment($motherPhone),
-            static::sanitizeBarcodeSegment($groupName),
-        ];
-
-        return implode('-', $segments);
+    public static function generateBarcode(int $serialNumber): string
+    {
+        return (string) $serialNumber;
     }
 
     public function branch(): BelongsTo
@@ -115,11 +100,7 @@ class Swimmer extends Model
             'remaining_amount' => 'decimal:2',
             'serial_number' => 'integer',
             'birth_year' => 'integer',
+            'excluded_from_financial_totals' => 'boolean',
         ];
-    }
-
-    protected static function sanitizeBarcodeSegment(string $value): string
-    {
-        return trim((string) preg_replace('/\s+/u', ' ', str_replace('-', ' ', $value)));
     }
 }
