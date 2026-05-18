@@ -68,6 +68,7 @@ class SwimmerController extends Controller
             'swimmers' => $swimmers,
             'trainingGroups' => $trainingGroups,
             'editedSwimmer' => $editedSwimmer,
+            'supportsFinancialExclusion' => Swimmer::supportsFinancialExclusion(),
             'showCreateForm' => $request->boolean('create')
                 || ($request->hasSession() && $request->session()->hasOldInput())
                 || $editedSwimmer !== null,
@@ -141,14 +142,19 @@ class SwimmerController extends Controller
         $serialNumber = $swimmer?->serial_number ?? Swimmer::nextSerialNumber();
         $remainingAmount = round((float) $validated['group_price'] - (float) $validated['amount_paid'], 2);
 
-        return [
+        $payload = [
             ...$validated,
             'branch_id' => $branch->id,
             'serial_number' => $serialNumber,
             'barcode' => Swimmer::generateBarcode($serialNumber),
             'subscription_end_date' => Swimmer::calculateSubscriptionEndDate($validated['subscription_start_date'], $trainingGroup),
             'remaining_amount' => $remainingAmount,
-            'excluded_from_financial_totals' => $request->boolean('excluded_from_financial_totals'),
         ];
+
+        if (Swimmer::supportsFinancialExclusion()) {
+            $payload['excluded_from_financial_totals'] = $request->boolean('excluded_from_financial_totals');
+        }
+
+        return $payload;
     }
 }

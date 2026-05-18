@@ -220,27 +220,29 @@
                     <input type="number" id="swimmer_remaining_amount" class="form-control" readonly data-swimmer-remaining>
                 </div>
 
-                <div class="d-flex align-items-end">
-                    <div class="form-check">
-                        <input
-                            type="hidden"
-                            name="excluded_from_financial_totals"
-                            value="0"
-                        >
-                        <input
-                            type="checkbox"
-                            id="swimmer_excluded_from_financial_totals"
-                            name="excluded_from_financial_totals"
-                            class="form-check-input"
-                            value="1"
-                            @checked((bool) $excludedFromFinancialTotals)
-                        >
-                        <label class="form-check-label" for="swimmer_excluded_from_financial_totals">
-                            غير محسوب
-                        </label>
-                        <div class="form-help-text">فعّلها إذا كان هذا الاشتراك مدفوعًا من قبل ولا يجب دخوله في الإجماليات.</div>
+                @if($supportsFinancialExclusion)
+                    <div class="d-flex align-items-end">
+                        <div class="form-check">
+                            <input
+                                type="hidden"
+                                name="excluded_from_financial_totals"
+                                value="0"
+                            >
+                            <input
+                                type="checkbox"
+                                id="swimmer_excluded_from_financial_totals"
+                                name="excluded_from_financial_totals"
+                                class="form-check-input"
+                                value="1"
+                                @checked((bool) $excludedFromFinancialTotals)
+                            >
+                            <label class="form-check-label" for="swimmer_excluded_from_financial_totals">
+                                غير محسوب
+                            </label>
+                            <div class="form-help-text">فعّلها إذا كان هذا الاشتراك مدفوعًا من قبل ولا يجب دخوله في الإجماليات.</div>
+                        </div>
                     </div>
-                </div>
+                @endif
 
                 <div class="form-actions-row trainer-form-actions swimmers-actions-row">
                     <button type="submit" class="btn primary-btn">{{ $editedSwimmer ? 'حفظ' : 'إضافة' }}</button>

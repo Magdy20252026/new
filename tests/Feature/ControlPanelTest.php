@@ -439,6 +439,59 @@ class ControlPanelTest extends TestCase
         $this->assertDatabaseMissing('swimmers', ['id' => $swimmer->id]);
     }
 
+    public function test_manager_can_create_swimmer_when_financial_exclusion_column_is_missing(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب احتياطي',
+            'phone' => '01000000099',
+            'password' => '123456',
+            'hourly_rate' => '150',
+            'transfer_number' => '9999',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+        $trainingGroup = TrainingGroup::query()->create([
+            'branch_id' => $branch->id,
+            'trainer_id' => $trainer->id,
+            'name' => 'مجموعة احتياطية',
+            'level' => 'مدارس سباحة',
+            'training_days_per_week' => 2,
+            'available_training_days' => 12,
+            'max_swimmers' => 20,
+            'price' => '650',
+            'schedule' => [['day' => 'saturday', 'time' => '10:00']],
+        ]);
+
+        Schema::table('swimmers', function ($table): void {
+            $table->dropColumn('excluded_from_financial_totals');
+        });
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->post(route('swimmers.store'), [
+                'name' => 'سليم أحمد',
+                'birth_year' => 2015,
+                'father_phone' => '01020030090',
+                'mother_phone' => '01020030091',
+                'training_group_id' => $trainingGroup->id,
+                'subscription_start_date' => '2026-05-17',
+                'group_price' => '650',
+                'amount_paid' => '200',
+                'excluded_from_financial_totals' => '1',
+            ])
+            ->assertRedirect(route('swimmers.index'));
+
+        $swimmer = Swimmer::query()->firstOrFail();
+
+        $this->assertSame(1001, $swimmer->serial_number);
+        $this->assertSame('1001', $swimmer->barcode);
+        $this->assertSame('450.00', $swimmer->remaining_amount);
+        $this->assertNull($swimmer->getAttribute('excluded_from_financial_totals'));
+    }
+
     public function test_manager_can_manage_swimmer_files_with_multiple_medical_reports(): void
     {
         $this->seed();
