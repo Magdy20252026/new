@@ -397,16 +397,15 @@ class ControlPanelTest extends TestCase
                 'subscription_end_date' => '2026-06-28',
                 'group_price' => '650',
                 'amount_paid' => '200',
+                'exclude_from_financial_totals' => '0',
             ])
             ->assertRedirect(route('swimmers.index'));
 
         $swimmer = Swimmer::query()->firstOrFail();
 
         $this->assertSame(1001, $swimmer->serial_number);
-        $this->assertSame(
-            '1001-عمر أحمد-2016-'.Swimmer::calculateAge(2016).'-01020030040-01020030041-مجموعة 10 صباحًا',
-            $swimmer->barcode,
-        );
+        $this->assertSame('1001', $swimmer->barcode);
+        $this->assertFalse($swimmer->exclude_from_financial_totals);
         $this->assertSame('450.00', $swimmer->remaining_amount);
         $this->assertSame('2026-06-28', $swimmer->subscription_end_date->toDateString());
 
@@ -422,15 +421,14 @@ class ControlPanelTest extends TestCase
                 'subscription_end_date' => '2026-06-29',
                 'group_price' => '700',
                 'amount_paid' => '250',
+                'exclude_from_financial_totals' => '1',
             ])
             ->assertRedirect(route('swimmers.index'));
 
         $swimmer->refresh();
 
-        $this->assertSame(
-            '1001-عمر أحمد علي-2015-'.Swimmer::calculateAge(2015).'-01020030042-01020030043-مجموعة 10 صباحًا',
-            $swimmer->barcode,
-        );
+        $this->assertSame('1001', $swimmer->barcode);
+        $this->assertTrue($swimmer->exclude_from_financial_totals);
         $this->assertSame('450.00', $swimmer->remaining_amount);
         $this->assertSame('2026-06-29', $swimmer->subscription_end_date->toDateString());
 
@@ -623,6 +621,77 @@ class ControlPanelTest extends TestCase
             ->assertOk()
             ->assertSee($swimmerOne->name)
             ->assertDontSee($swimmerTwo->name);
+    }
+
+    public function test_swimmer_page_separates_subscription_dates_and_excludes_marked_amounts_from_totals(): void
+    {
+        $this->seed();
+        $manager = User::query()->where('username', 'magdy')->firstOrFail();
+        $branch = Branch::query()->firstOrFail();
+        $trainer = Trainer::query()->create([
+            'branch_id' => $branch->id,
+            'name' => 'مدرب الإحصائيات',
+            'phone' => '01000000047',
+            'password' => '123456',
+            'hourly_rate' => '120',
+            'transfer_number' => '7777',
+            'transfer_type' => Trainer::TRANSFER_TYPE_WALLET,
+        ]);
+        $group = TrainingGroup::query()->create([
+            'branch_id' => $branch->id,
+            'trainer_id' => $trainer->id,
+            'name' => 'مجموعة الإحصائيات',
+            'level' => 'مدارس سباحة',
+            'training_days_per_week' => 2,
+            'available_training_days' => 8,
+            'max_swimmers' => 12,
+            'price' => '500',
+            'schedule' => [['day' => 'saturday', 'time' => '12:00']],
+        ]);
+
+        Swimmer::query()->create([
+            'branch_id' => $branch->id,
+            'training_group_id' => $group->id,
+            'serial_number' => 1001,
+            'barcode' => '1001',
+            'name' => 'سباح محسوب',
+            'birth_year' => 2014,
+            'father_phone' => '1',
+            'mother_phone' => '2',
+            'subscription_start_date' => '2026-05-17',
+            'subscription_end_date' => '2026-06-14',
+            'group_price' => '500',
+            'amount_paid' => '50',
+            'remaining_amount' => '450',
+            'exclude_from_financial_totals' => false,
+        ]);
+
+        Swimmer::query()->create([
+            'branch_id' => $branch->id,
+            'training_group_id' => $group->id,
+            'serial_number' => 1002,
+            'barcode' => '1002',
+            'name' => 'سباح غير محسوب',
+            'birth_year' => 2013,
+            'father_phone' => '3',
+            'mother_phone' => '4',
+            'subscription_start_date' => '2026-05-18',
+            'subscription_end_date' => '2026-06-15',
+            'group_price' => '500',
+            'amount_paid' => '120',
+            'remaining_amount' => '380',
+            'exclude_from_financial_totals' => true,
+        ]);
+
+        $this->actingAs($manager)
+            ->withSession(['current_branch_id' => $branch->id])
+            ->get(route('swimmers.index'))
+            ->assertOk()
+            ->assertSee('بداية الاشتراك')
+            ->assertSee('نهاية الاشتراك')
+            ->assertSee('غير محسوب')
+            ->assertSeeInOrder(['إجمالي المدفوع', '50'])
+            ->assertSeeInOrder(['إجمالي المتبقي', '450']);
     }
 
     public function test_training_groups_page_shows_only_groups_for_current_branch(): void

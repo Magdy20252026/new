@@ -7,6 +7,8 @@
     $initialBirthYear = (int) old('birth_year', $editedSwimmer?->birth_year ?? $currentYear);
     $initialPaid = old('amount_paid', $editedSwimmer?->amount_paid ?? 0);
     $initialPrice = old('group_price', $editedSwimmer?->group_price ?? $selectedGroup?->price ?? 0);
+    $excludeFromFinancialTotals = old('exclude_from_financial_totals', $editedSwimmer?->exclude_from_financial_totals ?? false);
+    $countedSwimmers = $swimmers->reject(fn ($swimmer) => $swimmer->exclude_from_financial_totals);
     $showForm = $showCreateForm || $editedSwimmer !== null;
     $trainingGroupDataset = $trainingGroups->map(fn ($group) => [
         'id' => $group->id,
@@ -28,12 +30,12 @@
             <div class="stat-card">
                 <div class="stat-card-icon"><i class="bi bi-credit-card-2-front-fill"></i></div>
                 <div class="stat-card-label">إجمالي المدفوع</div>
-                <div class="stat-card-value">{{ $formatNumber($swimmers->sum('amount_paid')) }}</div>
+                <div class="stat-card-value">{{ $formatNumber($countedSwimmers->sum('amount_paid')) }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-card-icon"><i class="bi bi-cash-stack"></i></div>
                 <div class="stat-card-label">إجمالي المتبقي</div>
-                <div class="stat-card-value">{{ $formatNumber($swimmers->sum('remaining_amount')) }}</div>
+                <div class="stat-card-value">{{ $formatNumber($countedSwimmers->sum('remaining_amount')) }}</div>
             </div>
         </section>
 
@@ -87,6 +89,7 @@
                         readonly
                         data-swimmer-barcode
                     >
+                    <div class="form-help-text">يبدأ الترقيم من 1001 ويزيد تلقائيًا.</div>
                 </div>
 
                 <div>
@@ -217,6 +220,28 @@
                     <input type="number" id="swimmer_remaining_amount" class="form-control" readonly data-swimmer-remaining>
                 </div>
 
+                <div class="d-flex align-items-end">
+                    <div class="form-check">
+                        <input
+                            type="hidden"
+                            name="exclude_from_financial_totals"
+                            value="0"
+                        >
+                        <input
+                            type="checkbox"
+                            id="swimmer_exclude_from_financial_totals"
+                            name="exclude_from_financial_totals"
+                            class="form-check-input"
+                            value="1"
+                            @checked((bool) $excludeFromFinancialTotals)
+                        >
+                        <label class="form-check-label" for="swimmer_exclude_from_financial_totals">
+                            غير محسوب
+                        </label>
+                        <div class="form-help-text">فعّلها إذا كان هذا الاشتراك مدفوعًا من قبل ولا يجب دخوله في الإجماليات.</div>
+                    </div>
+                </div>
+
                 <div class="form-actions-row trainer-form-actions swimmers-actions-row">
                     <button type="submit" class="btn primary-btn">{{ $editedSwimmer ? 'حفظ' : 'إضافة' }}</button>
                     <a href="{{ route('swimmers.index') }}" class="btn action-btn">إلغاء</a>
@@ -240,7 +265,9 @@
                                 <th>رقم الأب</th>
                                 <th>رقم الأم</th>
                                 <th>المجموعة</th>
-                                <th>الاشتراك</th>
+                                <th>بداية الاشتراك</th>
+                                <th>نهاية الاشتراك</th>
+                                <th>الحساب</th>
                                 <th>السعر</th>
                                 <th>المدفوع</th>
                                 <th>المتبقي</th>
@@ -267,9 +294,14 @@
                                     <td>{{ $swimmer->father_phone }}</td>
                                     <td>{{ $swimmer->mother_phone }}</td>
                                     <td>{{ $swimmer->trainingGroup->name }}</td>
+                                    <td>{{ optional($swimmer->subscription_start_date)->format('Y-m-d') }}</td>
+                                    <td>{{ optional($swimmer->subscription_end_date)->format('Y-m-d') }}</td>
                                     <td>
-                                        <div>{{ optional($swimmer->subscription_start_date)->format('Y-m-d') }}</div>
-                                        <div class="form-help-text">حتى {{ optional($swimmer->subscription_end_date)->format('Y-m-d') }}</div>
+                                        @if($swimmer->exclude_from_financial_totals)
+                                            <span class="badge text-bg-warning">غير محسوب</span>
+                                        @else
+                                            <span class="badge text-bg-success">محسوب</span>
+                                        @endif
                                     </td>
                                     <td>{{ $formatNumber($swimmer->group_price) }}</td>
                                     <td>{{ $formatNumber($swimmer->amount_paid) }}</td>
