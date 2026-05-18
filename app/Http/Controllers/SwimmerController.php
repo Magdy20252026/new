@@ -68,7 +68,9 @@ class SwimmerController extends Controller
             'swimmers' => $swimmers,
             'trainingGroups' => $trainingGroups,
             'editedSwimmer' => $editedSwimmer,
-            'showCreateForm' => $request->boolean('create') || $request->hasOldInput() || $editedSwimmer !== null,
+            'showCreateForm' => $request->boolean('create')
+                || ($request->hasSession() && $request->session()->hasOldInput())
+                || $editedSwimmer !== null,
             'nextSerialNumber' => $editedSwimmer?->serial_number ?? Swimmer::nextSerialNumber(),
             'currentYear' => now()->year,
         ], 'swimmers');
