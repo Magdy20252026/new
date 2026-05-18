@@ -139,6 +139,10 @@ class SwimmerController extends Controller
             ->where('branch_id', $branch->id)
             ->findOrFail($validated['training_group_id']);
 
+        if (! Swimmer::supportsFinancialExclusion()) {
+            unset($validated['excluded_from_financial_totals']);
+        }
+
         $serialNumber = $swimmer?->serial_number ?? Swimmer::nextSerialNumber();
         $remainingAmount = round((float) $validated['group_price'] - (float) $validated['amount_paid'], 2);
 
