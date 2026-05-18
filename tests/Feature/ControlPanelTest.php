@@ -358,7 +358,6 @@ class ControlPanelTest extends TestCase
         $this->assertDatabaseMissing('training_groups', ['id' => $trainingGroup->id]);
     }
 
-
     public function test_manager_can_create_update_and_delete_swimmer_with_generated_barcode(): void
     {
         $this->seed();
