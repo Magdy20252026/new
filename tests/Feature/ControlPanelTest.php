@@ -743,7 +743,7 @@ class ControlPanelTest extends TestCase
             ->assertSee('نهاية الاشتراك')
             ->assertSee('غير محسوب')
             ->assertSeeInOrder(['إجمالي المدفوع', '50'])
-            ->assertSeeInOrder(['إجمالي المتبقي', '450']);
+            ->assertSeeInOrder(['إجمالي المتبقي', '830']);
     }
 
     public function test_training_groups_page_shows_only_groups_for_current_branch(): void

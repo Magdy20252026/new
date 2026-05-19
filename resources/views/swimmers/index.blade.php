@@ -9,6 +9,7 @@
     $initialPrice = old('group_price', $editedSwimmer?->group_price ?? $selectedGroup?->price ?? 0);
     $excludedFromFinancialTotals = old('excluded_from_financial_totals', $editedSwimmer?->excluded_from_financial_totals ?? false);
     $countedSwimmers = $swimmers->reject(fn ($swimmer) => $swimmer->excluded_from_financial_totals);
+    $totalRemainingAmount = $swimmers->sum('remaining_amount');
     $showForm = $showCreateForm || $editedSwimmer !== null;
     $trainingGroupDataset = $trainingGroups->map(fn ($group) => [
         'id' => $group->id,
@@ -35,7 +36,7 @@
             <div class="stat-card">
                 <div class="stat-card-icon"><i class="bi bi-cash-stack"></i></div>
                 <div class="stat-card-label">إجمالي المتبقي</div>
-                <div class="stat-card-value">{{ $formatNumber($countedSwimmers->sum('remaining_amount')) }}</div>
+                <div class="stat-card-value">{{ $formatNumber($totalRemainingAmount) }}</div>
             </div>
         </section>
 
@@ -239,7 +240,7 @@
                             <label class="form-check-label" for="swimmer_excluded_from_financial_totals">
                                 غير محسوب
                             </label>
-                            <div class="form-help-text">فعّلها إذا كان هذا الاشتراك مدفوعًا من قبل ولا يجب دخوله في الإجماليات.</div>
+                            <div class="form-help-text">فعّلها إذا كان هذا الاشتراك لا يجب دخوله في إجمالي المدفوع فقط، بينما يظل المتبقي محسوبًا.</div>
                         </div>
                     </div>
                 @endif
